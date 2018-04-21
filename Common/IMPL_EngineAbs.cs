@@ -40,6 +40,7 @@ namespace Tanki
 
         }
 
+        public virtual void Dispose(){}
     }
 
 }

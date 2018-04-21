@@ -176,7 +176,8 @@ namespace Tanki
             //{
                 if (_enforceCancel)
                 {
-                    _finish_timer.Set();
+                    _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                    _finish_timer.Reset();
                     return;
                 }
 
@@ -214,7 +215,11 @@ namespace Tanki
             {
                 _enforceCancel = true;
                 //_proceedingThread.Join();
-                _timer.Dispose();
+                _timer.Dispose(_finish_timer);
+                _finish_timer.WaitOne();
+
+                _finish_timer.Close();
+                _finish_timer.Dispose();
 
                 _ifReady.Close();
                 _ifReady.Dispose();

@@ -115,7 +115,7 @@ namespace Tanki
     /// <summary>
     /// Cущность отправляющая информацию от клиента хосту
     /// </summary>
-    public interface ISender
+    public interface ISender:IDisposable
     {
         //string RemoteAdress { get; set; }   // ip хоста
         //int RemotePort { get; set; }        // порт хоста
@@ -133,7 +133,7 @@ namespace Tanki
     /// <summary>
     /// Cущность принимающая информацию клиентом от хоста
     /// </summary>
-    public interface IReciever : INetCommunicationObj
+    public interface IReciever : INetCommunicationObj,IDisposable
     {
         IRecieverClient Owner { get; }
         bool Alive { get; set; }                            // работает ли поток на прием
@@ -141,6 +141,7 @@ namespace Tanki
         IPEndPoint LockalEndPoint { get; }
         INetCommunicationObj GetNetCommunicationObject();
         void Run();                                         //must running in separate thread
+        void Stop();
         void OnRegistered_EventHandler(Object Sender, RegRecieverData evntData);
 
     }
@@ -211,7 +212,7 @@ namespace Tanki
     public delegate void ProcessMessageHandler(IPackage message);
     public delegate void ProcessMessagesHandler(IEnumerable<IPackage> messages);
 
-    public interface IEngine : IAddressseeHolderClient
+    public interface IEngine : IAddressseeHolderClient, IDisposable
     {
         IEngineClient Owner { get; }
         ProcessMessageHandler ProcessMessage { get; }
@@ -244,7 +245,7 @@ namespace Tanki
     /// может использоваться для GameServer и GameClient
     /// </summary>
 
-    public interface INetProcessor : IMessageQueueClient, IEngineClient, IRecieverClient
+    public interface INetProcessor : IMessageQueueClient, IEngineClient, IRecieverClient, IDisposable
     {
         //IMessageQueueClient - предоставляет IEnumerable of IReciever (использующие IMessageQueue), IEngine (нужный для IMessageQueue), 
         //                      а также механизм регистрации dependency IMessageQueue
