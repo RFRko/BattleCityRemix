@@ -120,7 +120,7 @@ namespace Tanki
             }
             catch(Exception ex)
             {
-
+                Console.WriteLine(" ..logoff");
             }
         }
 
@@ -136,7 +136,7 @@ namespace Tanki
                     }
                     catch (Exception ex)
                     {
-
+                        Console.WriteLine(" ..logoff");
                     }
                 }
              );
@@ -151,7 +151,7 @@ namespace Tanki
             }
             catch (Exception ex)
             {
-
+                Console.WriteLine(" ..logoff");
             }
         }
 
@@ -167,7 +167,7 @@ namespace Tanki
                     }
                     catch (Exception ex)
                     {
-
+                        Console.WriteLine(" ..logoff");
                     }
                 }
              );

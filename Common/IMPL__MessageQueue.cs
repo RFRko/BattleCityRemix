@@ -16,6 +16,7 @@ namespace Tanki
         protected IEngine _serverEngine;
 
         public abstract void RUN();
+        public abstract void STOP();
         public abstract void Enqueue(IPackage msg);
         public abstract void Dispose();
 
@@ -45,6 +46,8 @@ namespace Tanki
         private Queue<IPackage> _msg_queue = new Queue<IPackage>();
         private Thread _proceedingThread = null;
         private Boolean _enforceCancel = false;
+        private CancellationTokenSource _cancelQueueTokenSource = new CancellationTokenSource();
+        private CancellationToken _cancelQueueToken;
 
         //public MAK_MSG_proceed_method<T> MsgProceedMethod { get { return _msg_proceed_method; } }
         public Thread ProceedingThread { get { return _proceedingThread; } }
@@ -63,6 +66,7 @@ namespace Tanki
 
         public override void RUN()
         {
+            _cancelQueueToken = _cancelQueueTokenSource.Token;
             _proceedingThread = new Thread(ProceedQueue);
             _proceedingThread.Name = "MSG_PROCEEDING_ONEBYONE";
             _proceedingThread.Start();
@@ -70,37 +74,57 @@ namespace Tanki
 
         private void ProceedQueue()
         {
-            while (true)
+            try
             {
-                IPackage msg = null;
-
-                lock (_locker)
+                while (true)
                 {
-                    if (_enforceCancel)
-                        return;
+                    IPackage msg = null;
 
-                    if (_msg_queue.Count > 0)
-                        msg = _msg_queue.Dequeue();
+                    lock (_locker)
+                    {
+                        if (_cancelQueueToken.IsCancellationRequested)
+                        {
+                            _cancelQueueToken.ThrowIfCancellationRequested();
+                        }
+
+                        if (_msg_queue.Count > 0)
+                            msg = _msg_queue.Dequeue();
+                    }
+
+                    if (msg != null)
+                    {
+                        _serverEngine.ProcessMessage(msg); //- НУЖНА ЕЩЕ РЕАЛИЗАЦИЯ ProcessMessage  c параметром 'просто единичный IProtocol'
+                    }
+                    else
+                        _ifReady.WaitOne();
+
                 }
 
-                if (msg != null)
-                {
-                    _serverEngine.ProcessMessage(msg); //- НУЖНА ЕЩЕ РЕАЛИЗАЦИЯ ProcessMessage  c параметром 'просто единичный IProtocol'
-                }
-                else
-                    _ifReady.WaitOne();
+                //_proceedMsg.Set();
 
             }
+            catch (Exception ex)
+            {
 
-            //_proceedMsg.Set();
+            }
+        }
+
+        public override void STOP()
+        {
+            lock (_locker_stopping)
+            {
+                _cancelQueueTokenSource.Cancel();
+                _proceedingThread.Join(1000);
+            }
         }
 
         public override void Dispose()
         {
+            STOP();
+
             lock (_locker_stopping)
             {
-                _enforceCancel = true;
-                _proceedingThread.Join();
+                _cancelQueueTokenSource.Dispose();
 
                 _ifReady.Close();
                 _ifReady.Dispose();
@@ -130,6 +154,8 @@ namespace Tanki
         private Queue<IPackage> _msg_queue = new Queue<IPackage>();
         private Thread _proceedingThread = null;
         private Boolean _enforceCancel = false;
+        private CancellationTokenSource _cancelQueueTokenSource = new CancellationTokenSource();
+        private CancellationToken _cancelQueueToken;
 
         //public MAK_MSG_proceed_method<T> MsgProceedMethod { get { return _msg_proceed_method; } }
         //public Thread ProceedingThread { get { return _proceedingThread; } }
@@ -162,6 +188,7 @@ namespace Tanki
             _ifEnqueReady.Set();
             _ifDequeReady.Set();
             //_timer = new Timer(ProceedQueue, _ifReady, 0, 1000);
+            _cancelQueueToken = _cancelQueueTokenSource.Token;
             _timer = new Timer(ProceedQueue, null, 0, _timerSpeed);
 
             //_finish_timer.WaitOne();
@@ -174,7 +201,7 @@ namespace Tanki
 
             //lock (_locker)
             //{
-                if (_enforceCancel)
+                if (_cancelQueueToken.IsCancellationRequested)
                 {
                     _timer.Change(Timeout.Infinite, Timeout.Infinite);
                     _finish_timer.Reset();
@@ -209,14 +236,27 @@ namespace Tanki
         }
 
 
-        public override void Dispose()
+        public override void STOP()
         {
             lock (_locker_stopping)
             {
+                _cancelQueueTokenSource.Cancel();
                 _enforceCancel = true;
                 //_proceedingThread.Join();
                 _timer.Dispose(_finish_timer);
                 _finish_timer.WaitOne();
+
+            }
+        }
+
+
+        public override void Dispose()
+        {
+            STOP();
+
+            lock (_locker_stopping)
+            {
+                _cancelQueueTokenSource.Dispose();
 
                 _finish_timer.Close();
                 _finish_timer.Dispose();

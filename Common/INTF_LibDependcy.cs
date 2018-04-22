@@ -132,8 +132,10 @@ namespace Tanki
     public interface IGameClient
     {
         IEntity ClientGameState { get; set; }
+        void RUN();  //запускает базовый NetProcessorAbs.RUN (очередь\reciver), коннектится к cерверу
+        void STOP(); // останавленивает базовый NetProcessorAbs.RUN (очередь\reciver), коннектится к cерверу
         void RUN_GAME(); // запускает таймер переодической отправки клиентского состоянения игры на сервер
-        void END_GAME();
+        void STOP_GAME(); // останавливает таймер переодической отправки клиентского состоянения игры на сервер
         Guid Passport { get; set; }
         bool Connect(IPEndPoint ServerEndPoint);
 		void AddAddressee(String Id, IAddresssee addresssee);
@@ -148,7 +150,8 @@ namespace Tanki
                                              //Адресат это объект с IPEndPoint комнаты (может быть как минимум два аддерсата - управляющая комната, текущая игровая комната
 
 
-        void RUN(IPEndPoint ServerEndPoint); // создаем тспклиент с serverendpoint, через него запускает базовый NetProcessorAbs.RUN (очередь\reciver), коннектится к cерверу
+        void RUN(); // создаем тспклиент с serverendpoint, через него запускает базовый NetProcessorAbs.RUN (очередь\reciver), коннектится к cерверу
+        void STOP();
         IEntity ClientGameState { get; set; }   // польностью вернуть объект
         void OnClientGameStateChangedHandler(Object Sender, GameStateChangeData evntData); // просто реализовать метод на котрый что-то подпишеи
         event EventHandler<EnforceDrawingData> EnforceDrawing;  // дернет движок, просто делегат

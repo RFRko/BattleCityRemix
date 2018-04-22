@@ -73,8 +73,9 @@ namespace Tanki
 				{
 					Hide();
 					lobby.ShowDialog();
-					gameClient.END_GAME();
-					Close();
+					gameClient.STOP();                    
+
+                    Close();
 				}
 				else { Close(); }
 			}

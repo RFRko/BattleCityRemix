@@ -176,6 +176,7 @@ namespace Tanki
         IMessageQueueClient Owner { get; }
         void Enqueue(IPackage msg);
         void RUN();
+        void STOP();
         void OnRegistered_EventHandler(Object Sender, RegMsgQueueData evntData);
 
     }

@@ -93,27 +93,50 @@ namespace Tanki
             }
         }
 
+        private Timer _timer;
+        private CancellationTokenSource _sendingTimerCancelTokenSource = new CancellationTokenSource();
+        private CancellationToken _sendingTimerCancelToken;
+        private AutoResetEvent _timer_dispose = new AutoResetEvent(false);
 
+        // Guid IGameClient.Passport { get; set ; }
 
-       // Guid IGameClient.Passport { get; set ; }
-
-        public void RUN(IPEndPoint ServerEndPoint)                  // запускает базовый NetProcessorAbs.RUN (очередь\reciver), коннектится к cерверу
+        public void RUN()                  // запускает базовый NetProcessorAbs.RUN (очередь\reciver), коннектится к cерверу
         {
             base.RUN();
         }
+        public void STOP()
+        {
+            base.Dispose();
+        }
 
-        
 
         public void RUN_GAME()                                     // запускает таймер переодической отправки клиентского состоянения игры на сервер
         {
+            _sendingTimerCancelToken = _sendingTimerCancelTokenSource.Token;
             this.tm = new TimerCallback(ProceedQueue);
-            Timer timer = new Timer(tm, (Engine as IClientEngine).Entity, 0, this.MiliSeconds);
+            _timer = new Timer(tm, (Engine as IClientEngine).Entity, 0, this.MiliSeconds);
             
         }
 
+        public void STOP_GAME()
+        {
+            //Reciever.Alive = false;
+            _sendingTimerCancelTokenSource.Cancel();
+            _timer.Dispose(_timer_dispose);
+            _timer_dispose.WaitOne();
+        }
+
+
         private void ProceedQueue(object state)          //должен будет быть приватный метод  'void ProceedQueue(Object state)' который будет передаваться time-ру как callback 
         {                                                           // этот метод должен с периодиностью таймера отправлять клиентское состояние игры на сервер    
-			var tosend = state as IEntity;
+
+            if (_sendingTimerCancelToken.IsCancellationRequested)
+            {
+                _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                return;
+            }
+
+            var tosend = state as IEntity;
             var packagee = new Package()
             {
                 Sender_Passport = this.Passport,
@@ -137,11 +160,6 @@ namespace Tanki
 			}
 			catch { return false; };
         }
-
-        public void END_GAME()
-        {
-            Reciever.Alive = false;
-		}
 
         public void OnClientGameStateChangedHandler(object Sender, GameStateChangeData evntData)
         {

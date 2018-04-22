@@ -160,13 +160,25 @@ namespace Tanki
 		private void MessagesHandler(IEnumerable<IPackage> list)
 		{
 			object locker = new object();
+
+            List<IPackage> _disconnected = new List<IPackage>();
+
 			if (this.status == GameStatus.Start)
 			{
 				lock (locker)
 				{
-					list = from t in list
-						   where !(from dead in DeadCache select dead.Tank_ID).Contains((t.Data as ITank).Tank_ID) 
-						   select t;
+
+                    var  dEn = from m in list where m.MesseggeType == MesseggeType.RequestLogOff select m;
+                    if ( dEn.Count() >0)
+                    {
+
+                    }
+
+                    list = from m in list
+						   where (  m.MesseggeType != MesseggeType.RequestLogOff &&
+                                    m.Data != null &&
+                                    !(from dead in DeadCache select dead.Tank_ID).Contains((m.Data as ITank).Tank_ID))
+						   select m;
 
                    this.MoveAll();
                     if (colInd.Next(1, 10000) == 555) this.HealthBlock();
