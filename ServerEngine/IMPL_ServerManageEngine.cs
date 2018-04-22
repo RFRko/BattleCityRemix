@@ -48,7 +48,7 @@ namespace Tanki
 					}
 				case MesseggeType.RequestLogOff:
 					{
-						Disconect();
+						Disconect(msg);
 						break;
 					}
 				default: return;
@@ -220,9 +220,10 @@ namespace Tanki
 
 
         }
-		private void Disconect()
+		private void Disconect(IPackage msg)
 		{
-
+            Guid playerId = msg.Sender_Passport;
+            (Owner as IRoom).RemoveGamer(playerId);
 		}
 
 
@@ -237,6 +238,11 @@ namespace Tanki
         }
 
         public override void OnBeforNetProcStarted_EventHandler(object Sender, NetProcBeforStartedEvntData evntData)
+        {
+            //nothing to do required yet
+        }
+
+        public override void OnRemoveAddresssee_Handler(object Sender, RemoveAddressseeData evntData)
         {
             //nothing to do required yet
         }

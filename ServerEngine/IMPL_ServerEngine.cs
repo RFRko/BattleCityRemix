@@ -153,13 +153,16 @@ namespace Tanki
             //		this.Move(bullets[i]);
             //}
         }
-		/// <summary>
-		/// Реализация делегата ProcessMessagesHandler
-		/// </summary>
-		/// <param name="list">Список пакетов переданый движку на обработку</param>
+        /// <summary>
+        /// Реализация делегата ProcessMessagesHandler
+        /// </summary>
+        /// <param name="list">Список пакетов переданый движку на обработку</param>
+        /// 
+        private Object locker = new Object();
+
 		private void MessagesHandler(IEnumerable<IPackage> list)
 		{
-			object locker = new object();
+			//object locker = new object();
 
             List<IPackage> _disconnected = new List<IPackage>();
 
@@ -168,12 +171,19 @@ namespace Tanki
 				lock (locker)
 				{
 
-                    var  dEn = from m in list where m.MesseggeType == MesseggeType.RequestLogOff select m;
-                    if ( dEn.Count() >0)
+                    // обработка сообщений об отключении от комнаты
+                    var logoffmsgs = from m in list where m.MesseggeType == MesseggeType.RequestLogOff select m;
+                    if (logoffmsgs!= null && logoffmsgs.Count() >0)
                     {
+                        foreach (var m in logoffmsgs)
+                        {
+                            (Owner as IRoom).RemoveGamer((Guid)m.Sender_Passport); //после этого вызовется событие комнаты OnRemoveAddresssee
 
+                            // ХОТЯ УДАЛИТЬ ТАНК ИЗ  КАРТЫ ПО  ID - можно прямо сдесь.
+                        }
                     }
 
+                    // берем сообщения только типа Tank кроме убитых
                     list = from m in list
 						   where (  m.MesseggeType != MesseggeType.RequestLogOff &&
                                     m.Data != null &&
@@ -667,5 +677,9 @@ namespace Tanki
 
 		}
 
-	}
+        public override void OnRemoveAddresssee_Handler(object Sender, RemoveAddressseeData evntData)
+        {
+            //throw new NotImplementedException();
+        }
+    }
 }

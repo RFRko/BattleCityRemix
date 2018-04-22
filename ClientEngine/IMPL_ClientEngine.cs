@@ -152,15 +152,21 @@ namespace Tanki
 				MesseggeType = MesseggeType.RequestLogOff
 			}, client["Room"]);
 
+            Owner.Sender.SendMessage(new Package()
+            {
+                Sender_Passport = client.Passport,
+                MesseggeType = MesseggeType.RequestLogOff
+            }, client["Host"]);
+
         }
         public void exit()
 		{
-			StopGame();
-			Owner.Sender.SendMessage(new Package()
-			{
-				Sender_Passport = client.Passport,
-				MesseggeType = MesseggeType.RequestLogOff
-			}, client["Host"]);
+			//StopGame();
+			//Owner.Sender.SendMessage(new Package()
+			//{
+			//	Sender_Passport = client.Passport,
+			//	MesseggeType = MesseggeType.RequestLogOff
+			//}, client["Host"]);
 
             //(Owner as IGameClient).STOP();
 		}
@@ -327,5 +333,10 @@ namespace Tanki
         {
 			//nothing to do required yet
 		} // не нужен, требует EngineAbs
-	}
+
+        public override void OnRemoveAddresssee_Handler(object Sender, RemoveAddressseeData evntData)
+        {
+            //nothing to do required yet
+        }
+    }
 }

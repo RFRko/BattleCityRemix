@@ -24,7 +24,14 @@ namespace Tanki
         public IAddresssee newAddresssee { get; set; }
     }
 
-	public class RoomConnect : EventArgs
+    public class RemoveAddressseeData : EventArgs
+    {
+        public IAddresssee removeddresssee { get; set; }
+    }
+
+
+
+    public class RoomConnect : EventArgs
 	{
 		public Size MapSize { get; set; }
 	}
@@ -83,6 +90,11 @@ namespace Tanki
     public class NotifyStartGameData : EventArgs
     {
         public Boolean EnforceStartGame { get; set; }
-    }    
+    }
 
+    
+    public class NotifyRemovePlayerData : EventArgs
+    {
+        public Guid RemovedPlayerPassport { get; set; }
+    }
 }

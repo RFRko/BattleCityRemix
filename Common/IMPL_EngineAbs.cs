@@ -18,7 +18,8 @@ namespace Tanki
         
         public abstract void OnNetProcStarted_EventHandler(object Sender, NetProcStartedEvntData evntData);
 		public abstract void OnNewAddresssee_Handler(object Sender, NewAddressseeData evntData);
-		public abstract void OnAddressseeHolderFull_Handler(object Sender, AddressseeHolderFullData evntData);
+        public abstract void OnRemoveAddresssee_Handler(object Sender, RemoveAddressseeData evntData);
+        public abstract void OnAddressseeHolderFull_Handler(object Sender, AddressseeHolderFullData evntData);
         public abstract void OnBeforNetProcStarted_EventHandler(object Sender, NetProcBeforStartedEvntData evntData);
 
 
@@ -31,6 +32,7 @@ namespace Tanki
 			if (addrHolder != null)
 			{
 				addrHolder.OnNewAddresssee += OnNewAddresssee_Handler;
+                addrHolder.OnRemoveAddresssee += OnRemoveAddresssee_Handler;
                 addrHolder.OnAddressseeHolderFull += OnAddressseeHolderFull_Handler;
             }
 
@@ -41,6 +43,7 @@ namespace Tanki
         }
 
         public virtual void Dispose(){}
+
     }
 
 }

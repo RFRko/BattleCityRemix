@@ -114,7 +114,8 @@ namespace Tanki
             lock (_locker_stopping)
             {
                 _cancelQueueTokenSource.Cancel();
-                _proceedingThread.Join(1000);
+                _ifReady.Set();
+                _proceedingThread.Join();
             }
         }
 

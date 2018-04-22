@@ -253,6 +253,7 @@ namespace Tanki
         //IEngineClient - предоставляет IMessageQueue (использующий IEngine), и ISender (Нужный для IEngine)
         //                      а также механизм регистрации dependency IEngine
         void RUN();
+        void STOP();
     }
     #endregion INetProcessor
 

@@ -74,6 +74,12 @@ namespace Tanki
             OnNetProcessorStarted?.BeginInvoke(this, new NetProcStartedEvntData() { Started = true }, null, null);
         }
 
+        public void STOP()
+        {
+            Reciever.Stop();
+            MessageQueue.STOP();
+        }
+
         public void Dispose()
         {
             Reciever.Dispose();

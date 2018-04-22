@@ -44,6 +44,7 @@ namespace Tanki
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
 			Application.Run(new ConnectionForm(gameClient));
+            gameClient.Dispose();
 		}
 	}
 }

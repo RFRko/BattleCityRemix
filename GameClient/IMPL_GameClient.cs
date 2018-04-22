@@ -100,32 +100,33 @@ namespace Tanki
 
         // Guid IGameClient.Passport { get; set ; }
 
-        public void RUN()                  // запускает базовый NetProcessorAbs.RUN (очередь\reciver), коннектится к cерверу
+        public void RUN()   // запускает базовый NetProcessorAbs.RUN (очередь\reciver)
         {
             base.RUN();
         }
-        public void STOP()
+        public void STOP()  // останавливает базовый NetProcessorAbs.STOP (очередь\reciver)
         {
-            base.Dispose();
+            base.STOP();
         }
 
 
-        public void RUN_GAME()                                     // запускает таймер переодической отправки клиентского состоянения игры на сервер
-        {
-            _sendingTimerCancelToken = _sendingTimerCancelTokenSource.Token;
-            this.tm = new TimerCallback(ProceedQueue);
-            _timer = new Timer(tm, (Engine as IClientEngine).Entity, 0, this.MiliSeconds);
-            
-        }
+        #region moved_to_client_engine
+        //public void RUN_GAME()    // запускает таймер переодической отправки клиентского состоянения игры на сервер
+        //{
+        //    _sendingTimerCancelToken = _sendingTimerCancelTokenSource.Token;
+        //    this.tm = new TimerCallback(ProceedQueue);
+        //    _timer = new Timer(tm, (Engine as IClientEngine).Entity, 0, this.MiliSeconds);
 
-        public void STOP_GAME()
-        {
-            //Reciever.Alive = false;
-            _sendingTimerCancelTokenSource.Cancel();
-            _timer.Dispose(_timer_dispose);
-            _timer_dispose.WaitOne();
-        }
+        //}
 
+        //public void STOP_GAME()   // останавливает таймер переодической отправки клиентского состоянения игры на сервер
+        //{
+        //    //Reciever.Alive = false;
+        //    _sendingTimerCancelTokenSource.Cancel();
+        //    _timer.Dispose(_timer_dispose);
+        //    _timer_dispose.WaitOne();
+        //}
+        #endregion moved_to_client_engine
 
         private void ProceedQueue(object state)          //должен будет быть приватный метод  'void ProceedQueue(Object state)' который будет передаваться time-ру как callback 
         {                                                           // этот метод должен с периодиностью таймера отправлять клиентское состояние игры на сервер    
