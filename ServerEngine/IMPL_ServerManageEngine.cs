@@ -41,6 +41,12 @@ namespace Tanki
 						RoomConnect(msg);
 						break;
 					}
+                case MesseggeType.ConfirmJoinRoom:
+                    {
+                        ConfirmJoinToRoom(msg);
+                        break;
+                    }
+
 				case MesseggeType.CreateRoom:
 					{
 						CreatRoom(msg);
@@ -115,12 +121,14 @@ namespace Tanki
 			{
 				if (room.Gamers.Count() < room.GameSetings.MaxPlayersCount)
 				{
-					IPEndPoint room_ipendpoint = ManagerRoom.MooveGamerToRoom(gamer, room_passport);
-                    Addresssee addres = new Addresssee(room_ipendpoint );
+                    //IPEndPoint room_ipendpoint = ManagerRoom.MooveGamerToRoom(gamer, room_passport); - Это будет делаться по отдельному сообщению ConfirmJoinToRoom                    
+                    IPEndPoint room_ipendpoint = room.Reciever.LockalEndPoint;
+                    Addresssee addres = new Addresssee(room_ipendpoint);
 
 					var roominfo = new RoomInfo()
 					{
-						roomEndpoint = addres,
+                        RoomPassport = room_passport,
+                        roomEndpoint = addres,
 						mapSize = map_Size
 					};
 
@@ -128,23 +136,24 @@ namespace Tanki
 					{
 						Data = roominfo,
 						MesseggeType = MesseggeType.RoomInfo
-					}, gamer.RemoteEndPoint);
+					}, gamer);   //gamer.RemoteEndPoint
 
-                    (room as IGameRoom).NotifyGameRoomForEvent(new NotifyJoinedPlayerData() { JoinedAddresssee = gamer });
+                    // Это будет делаться по отдельному сообщению ConfirmJoinToRoom
+                    //(room as IGameRoom).NotifyGameRoomForEvent(new NotifyJoinedPlayerData() { JoinedAddresssee = gamer });
 
-                    // инициировать начало игры
-                    if (room.Gamers.Count() == room.GameSetings.MaxPlayersCount)
-                    {
-                        IPackage pack = new Package()
-                        {
-                            MesseggeType = MesseggeType.StartGame,
-                            Data = null,
-                        };               
-                        Owner.Sender.SendMessage(pack, room.Gamers); //Управляющая комната отсылает участникам игровой комнаты
-                        
-                        //уведомляем игровую комнату о начале:
-                        (room as IGameRoom).NotifyGameRoomForEvent(new NotifyStartGameData() { EnforceStartGame = true });
-                    }
+                    //// инициировать начало игры
+                    //if (room.Gamers.Count() == room.GameSetings.MaxPlayersCount)
+                    //{
+                    //    IPackage pack = new Package()
+                    //    {
+                    //        MesseggeType = MesseggeType.StartGame,
+                    //        Data = null,
+                    //    };               
+                    //    Owner.Sender.SendMessage(pack, room.Gamers); //Управляющая комната отсылает участникам игровой комнаты
+
+                    //    //уведомляем игровую комнату о начале:
+                    //    (room as IGameRoom).NotifyGameRoomForEvent(new NotifyStartGameData() { EnforceStartGame = true });
+                    //}
 
 
 
@@ -167,7 +176,65 @@ namespace Tanki
 				}, gamer.RemoteEndPoint);
 			}
 		}
-		private void CreatRoom(IPackage package)
+
+
+        private void ConfirmJoinToRoom(IPackage package)
+        {
+            IConfirmJoinToRoom confirmJoinData = package.Data as IConfirmJoinToRoom;
+            ManagerRoom = Owner as IManagerRoom;
+
+            var client_passport = package.Sender_Passport;
+
+            IGamer gamer = ManagerRoom.GetGamerByGuid(client_passport);
+
+            var room_passport = confirmJoinData.RoomPassport;
+            var room = ManagerRoom.GetRoomByGuid(room_passport);
+
+            if (room != null)
+            {
+                if (room.Gamers.Count() < room.GameSetings.MaxPlayersCount)
+                {
+                    ManagerRoom.MooveGamerToRoom(gamer, room_passport);
+
+                    (room as IGameRoom).NotifyGameRoomForEvent(new NotifyJoinedPlayerData() { JoinedAddresssee = gamer });
+
+                    // инициировать начало игры
+                    if (room.Gamers.Count() == room.GameSetings.MaxPlayersCount)
+                    {
+                        IPackage pack = new Package()
+                        {
+                            MesseggeType = MesseggeType.StartGame,
+                            Data = null,
+                        };
+                        Owner.Sender.SendMessage(pack, room.Gamers); //Управляющая комната отсылает участникам игровой комнаты
+
+                        //уведомляем игровую комнату о начале:
+                        (room as IGameRoom).NotifyGameRoomForEvent(new NotifyStartGameData() { EnforceStartGame = true });
+                    }
+                }
+                else
+                {
+                    Owner.Sender.SendMessage(new Package()
+                    {
+                        Data = "Room is full",
+                        MesseggeType = MesseggeType.Error
+                    }, gamer.RemoteEndPoint);
+                }
+            }
+            else
+            {
+                Owner.Sender.SendMessage(new Package()
+                {
+                    Data = "Room is not exist",
+                    MesseggeType = MesseggeType.Error
+                }, gamer.RemoteEndPoint);
+            }
+
+        }
+
+
+
+        private void CreatRoom(IPackage package)
 		{
 			var conectionData = (IConectionData)package.Data;
 			var client_passport = package.Sender_Passport;
@@ -182,14 +249,18 @@ namespace Tanki
             IRoom newGameRoom = ManagerRoom.AddRoom(newGameSettings, client_passport);
             newGameRoom.CreatorPassport = gamer.Passport;
 
-			// добавить в нее игрока
-			var room_endpoint = ManagerRoom.MooveGamerToRoom(gamer, newGameRoom.Passport);
+            newGameRoom.RUN();
+
+            // добавить в нее игрока
+            //var room_endpoint = ManagerRoom.MooveGamerToRoom(gamer, newGameRoom.Passport);
+            var room_endpoint = newGameRoom.Reciever.LockalEndPoint;
             Addresssee addres = new Addresssee(room_endpoint );
 
 
-			var roominfo = new RoomInfo()
-			{
-				roomEndpoint = addres,
+            var roominfo = new RoomInfo()
+            {
+                RoomPassport = newGameRoom.Passport,
+                roomEndpoint = addres,
 				mapSize = newGameSettings.MapSize
 			};
 
@@ -200,22 +271,22 @@ namespace Tanki
 			}, gamer.RemoteEndPoint);
 
 
-            newGameRoom.RUN();            
-            (newGameRoom as IGameRoom).NotifyGameRoomForEvent(new NotifyJoinedPlayerData() { JoinedAddresssee = gamer });
+            //newGameRoom.RUN();            
+            //(newGameRoom as IGameRoom).NotifyGameRoomForEvent(new NotifyJoinedPlayerData() { JoinedAddresssee = gamer });
 
             // инициировать начало игры (по крайней мере для теста - если создатель указывает колич.игроков =1 при создании)
-            if (newGameRoom.Gamers.Count() == newGameRoom.GameSetings.MaxPlayersCount)
-            {
-                IPackage pack = new Package()
-                {
-                    MesseggeType = MesseggeType.StartGame,
-                    Data = null,
-                };
-                Owner.Sender.SendMessage(pack, newGameRoom.Gamers); //Управляющая комната отсылает участникам игровой комнаты
+            //if (newGameRoom.Gamers.Count() == newGameRoom.GameSetings.MaxPlayersCount)
+            //{
+            //    IPackage pack = new Package()
+            //    {
+            //        MesseggeType = MesseggeType.StartGame,
+            //        Data = null,
+            //    };
+            //    Owner.Sender.SendMessage(pack, newGameRoom.Gamers); //Управляющая комната отсылает участникам игровой комнаты
 
-                //уведомляем игровую комнату о начале:
-                (newGameRoom as IGameRoom).NotifyGameRoomForEvent(new NotifyStartGameData() { EnforceStartGame = true });
-            }
+            //    //уведомляем игровую комнату о начале:
+            //    (newGameRoom as IGameRoom).NotifyGameRoomForEvent(new NotifyStartGameData() { EnforceStartGame = true });
+            //}
 
 
 

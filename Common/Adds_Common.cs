@@ -74,7 +74,8 @@
 		Entity,
 		/// <summary> Событие о уничтожении танка</summary>
 		TankDeath,
-		RequestLogOff
+		RequestLogOff,
+        ConfirmJoinRoom
 	}
 	/// <summary>
 	/// Состояние игры

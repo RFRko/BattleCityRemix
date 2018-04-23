@@ -319,9 +319,17 @@ namespace Tanki
 
     public interface IRoomInfo
     {
+      Guid RoomPassport { get; set; }
       IAddresssee roomEndpoint { get; set; }
       Size mapSize { get; set; }
     }
+
+    public interface IConfirmJoinToRoom
+    {
+        Guid RoomPassport { get; set; }
+        Guid ClientPassport { get; set; }
+    }
+
 
     public interface IGameObjectFactory
     {

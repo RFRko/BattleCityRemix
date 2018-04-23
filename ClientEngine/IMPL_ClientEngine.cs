@@ -23,6 +23,7 @@ namespace Tanki
 		}
 
 		private IGameClient client;
+        private Guid _gameRoomPassport;
 		private object Map_locker = new object();
 		private object Entity_locker = new object();
 		private bool First_Map;
@@ -142,7 +143,25 @@ namespace Tanki
 				MesseggeType = MesseggeType.RoomID
 			}, client["Host"]);
 		}
-		public void StopGame()
+
+        public void ConfirmJoinRoom()
+        {
+            var ConfirmJoinRoomData = new ConfirmJoinToRoom()
+            {
+                ClientPassport = GetPassport(),
+                RoomPassport = _gameRoomPassport
+            };
+
+            Owner.Sender.SendMessage(new Package()
+            {
+                Sender_Passport = client.Passport,
+                Data = ConfirmJoinRoomData,
+                MesseggeType = MesseggeType.ConfirmJoinRoom
+            }, client["Host"]);
+
+        }
+
+        public void StopGame()
 		{
 			_CancelationSource.Cancel();
 			_timer.Dispose();
@@ -259,9 +278,13 @@ namespace Tanki
 				case MesseggeType.RoomInfo:
 					{
 						var roomInfo = package.Data as RoomInfo;
-						client.AddAddressee("Room", roomInfo.roomEndpoint as IAddresssee);
+                        _gameRoomPassport = roomInfo.RoomPassport;
+                        client.AddAddressee("Room", roomInfo.roomEndpoint as IAddresssee);
 						Map_size = roomInfo.mapSize;
-						break;
+
+                        ConfirmJoinRoom();
+
+                        break;
 					}
 				case MesseggeType.TankDeath:
 					{
