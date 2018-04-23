@@ -17,9 +17,9 @@ namespace Tanki
 		public GameForm(IClientEngine clientEngine, Size size)
 		{
 			ClientEngine = clientEngine;
-			clientEngine.OnMapChanged += OnMapChangeHandler;
-			clientEngine.OnTankDeath += OnTankDeath;
-			clientEngine.OnError += ErrorHandler;
+			ClientEngine.OnMapChanged += OnMapChangeHandler;
+			ClientEngine.OnTankDeath += OnTankDeath;
+			ClientEngine.OnError += ErrorHandler;
 
 			onMapChanged += onMapChangedProc;
 			DeathAnimation += onDeathAnimation;
@@ -299,6 +299,14 @@ namespace Tanki
 		private void GameForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			ClientEngine.StopGame();
-		}
+            ClientEngine.OnMapChanged -= OnMapChangeHandler;
+            ClientEngine.OnTankDeath -= OnTankDeath;
+            ClientEngine.OnError -= ErrorHandler;
+
+            onMapChanged -= onMapChangedProc;
+            DeathAnimation -= onDeathAnimation;
+            ClientEngine = null;
+            Map = null;
+        }
 	}
 }

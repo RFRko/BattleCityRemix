@@ -75,11 +75,13 @@ namespace Tanki
 			gameRoom.OnNotifyStartGame += NotifyStartGame_Handler;
 		}
 
+        private ManualResetEvent _ready_proc_newGamer = new ManualResetEvent(true);
+        private ManualResetEvent _ready_proc_msg = new ManualResetEvent(true);
 
-		/// <summary>
-		/// Ширина игрового поля
-		/// </summary>
-		public int Width { get { return this.width; } set { this.width = value; } }
+        /// <summary>
+        /// Ширина игрового поля
+        /// </summary>
+        public int Width { get { return this.width; } set { this.width = value; } }
 		/// <summary>
 		/// Высота игрового поля
 		/// </summary>
@@ -166,14 +168,16 @@ namespace Tanki
 
             List<IPackage> _disconnected = new List<IPackage>();
 
-			if (this.status == GameStatus.Start)
-			{
-				lock (locker)
-				{
+            _ready_proc_newGamer.Reset();
+            _ready_proc_msg.WaitOne();
 
+            lock(locker)
+            {
+                if (this.status == GameStatus.Start)
+                {
                     // обработка сообщений об отключении от комнаты
                     var logoffmsgs = from m in list where m.MesseggeType == MesseggeType.RequestLogOff select m;
-                    if (logoffmsgs!= null && logoffmsgs.Count() >0)
+                    if (logoffmsgs != null && logoffmsgs.Count() > 0)
                     {
                         foreach (var m in logoffmsgs)
                         {
@@ -183,47 +187,50 @@ namespace Tanki
                                 var tank2remove = tanks.Single((t) => { return t.Tank_ID == m.Sender_Passport; });
                                 tanks.Remove(tank2remove);
                             }
-                            catch (Exception ex) { };                            
+                            catch (Exception ex) { };
                         }
                     }
 
                     // берем сообщения только типа Tank кроме убитых
                     list = from m in list
-						   where (  m.MesseggeType != MesseggeType.RequestLogOff &&
+                            where (m.MesseggeType != MesseggeType.RequestLogOff &&
                                     m.Data != null &&
                                     !(from dead in DeadCache select dead.Tank_ID).Contains((m.Data as ITank).Tank_ID))
-						   select m;
+                            select m;
 
-                   this.MoveAll();
+                    this.MoveAll();
                     if (colInd.Next(1, 10000) == 555) this.HealthBlock();
                     foreach (var t in list)
-					{
-						var tmp = t.Data as IEntity;
-						if (tmp.Command == EntityAction.Move)
-						{
-							this.Move(tmp);
-						}
-						if (tmp.Command == EntityAction.Fire)
-						{
-							this.Fire(tmp);
-						}
-					}
-					if (this.CheckWin())
-					{
-						var room = Owner as IRoom;
+                    {
+                        var tmp = t.Data as IEntity;
+                        if (tmp.Command == EntityAction.Move)
+                        {
+                            this.Move(tmp);
+                        }
+                        if (tmp.Command == EntityAction.Fire)
+                        {
+                            this.Fire(tmp);
+                        }
+                    }
+                    if (this.CheckWin())
+                    {
+                        var room = Owner as IRoom;
                         this.status = GameStatus.EndGame;
-						room.Status = GameStatus.EndGame;
-						this.SendEndGame();
-					}
-					this.Send();
-				}
-			}
-		}
-		/// <summary>
-		/// Метод реализирующий обработку "убитой" сущности
-		/// </summary>
-		/// <param name="entity">"Убитая" сущность</param>
-		private void Death(IEntity entity)
+                        room.Status = GameStatus.EndGame;
+                        this.SendEndGame();
+                    }
+                    this.Send();
+                }
+            }
+            
+            _ready_proc_newGamer.Set();
+
+        }
+        /// <summary>
+        /// Метод реализирующий обработку "убитой" сущности
+        /// </summary>
+        /// <param name="entity">"Убитая" сущность</param>
+        private void Death(IEntity entity)
 		{
 
 			if (entity is ITank)
@@ -633,7 +640,11 @@ namespace Tanki
 		/// <param name="evntData">Данные о подключении</param>
 		public override void OnNewAddresssee_Handler(object Sender, NewAddressseeData evntData)
 		{
-			if (this.mapgen == false)
+            _ready_proc_msg.Reset();
+            _ready_proc_newGamer.WaitOne();
+
+
+            if (this.mapgen == false)
 				this.GenerateMap();
 			var room = Owner as IRoom;
 			var gamer = evntData.newAddresssee as IGamer;
@@ -649,13 +660,16 @@ namespace Tanki
             {
                 this.SendEndGame(gamer);
             }
+
+            _ready_proc_msg.Set();
+
         }
-		/// <summary>
-		/// Обработка события изменения игрового статуса
-		/// </summary>
-		/// <param name="Sender">Объект изменивший игровой статус</param>
-		/// <param name="statusData"> Данные о новом игровом статуса</param>
-		public void OnNewGameStatus_Handler(object Sender, GameStatusChangedData statusData)
+        /// <summary>
+        /// Обработка события изменения игрового статуса
+        /// </summary>
+        /// <param name="Sender">Объект изменивший игровой статус</param>
+        /// <param name="statusData"> Данные о новом игровом статуса</param>
+        public void OnNewGameStatus_Handler(object Sender, GameStatusChangedData statusData)
 		{
 
 			//this.status = statusData.newStatus;
@@ -676,11 +690,11 @@ namespace Tanki
 		public override void OnAddressseeHolderFull_Handler(object Sender, AddressseeHolderFullData evntData)
 		{
             //общий сигнал о начале игры при заполнении
-            if (status != GameStatus.Start && status != GameStatus.EndGame)
+            if (status == GameStatus.WaitForStart)
             {
                 this.status = GameStatus.Start;
                 this.SendStartGame();
-            }            
+            }
         }
 
 		public void OnNotifyJoinedPlayer_Handler(object Sender, NotifyJoinedPlayerData evntData)

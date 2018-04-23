@@ -170,6 +170,9 @@ namespace Tanki
 			_timer.Dispose();
             st_g = false;
             First_Map = true;
+            Map = null;
+            _ifReadyToSendEntity.Reset();
+            _ifReadyToSetEntity.Reset();
 
             Owner.Sender.SendMessage(new Package()
 			{
@@ -284,9 +287,10 @@ namespace Tanki
 						var roomInfo = package.Data as RoomInfo;
                         _gameRoomPassport = roomInfo.RoomPassport;
                         client.AddAddressee("Room", roomInfo.roomEndpoint as IAddresssee);
-						Map_size = roomInfo.mapSize;
 
                         ConfirmJoinRoom();
+                        Map_size = roomInfo.mapSize; //отсюда дергается Engine.OnRoomConnect -> GameForm.OnRoomConnect
+
 
                         break;
 					}
@@ -307,14 +311,16 @@ namespace Tanki
 				case MesseggeType.StartGame:
 					{
 						st_g = true;
-						stopWatch.Start();
+						//stopWatch.Start();
 						_ifReadyToSendEntity.Set();
-						_timerCancelator = _CancelationSource.Token;
+                        _CancelationSource = new CancellationTokenSource();
+                        _timerCancelator = _CancelationSource.Token;
 						_timer = new Timer(SendByTimerCallback, _timerCancelator, 0, timerSpeed);
 						break;
 					}
 				case MesseggeType.EndGame:
 					{
+                        StopGame();
 						onGameOwer?.BeginInvoke(this, 
 							new ErrorData() { errorText = "Победил: " + (string)package.Data } , null, null);
 						break;
