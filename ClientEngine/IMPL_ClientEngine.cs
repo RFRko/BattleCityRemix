@@ -61,7 +61,10 @@ namespace Tanki
 
 			protected set
 			{
-				lock (Map_locker) { _Map = value; }
+				lock (Map_locker)
+                {
+                    _Map = value;
+                }
 				OnMapChanged?.BeginInvoke(this, new GameStateChangeData() { newMap = value }, null, null);
 			}
 		}
@@ -249,11 +252,11 @@ namespace Tanki
 				case MesseggeType.Map:
 					{
 						if (st_g)  count++;
-						if(stopWatch.Elapsed.Seconds == 10)
-						{
-							//тут ставь точку и смотри count
-                            stopWatch.Stop();
-						}
+						//if(stopWatch.Elapsed.Seconds == 10)
+						//{
+						//	//тут ставь точку и смотри count
+      //                      stopWatch.Stop();
+						//}
 						Map = package.Data as IMap;
 						if(First_Map)
 						{
