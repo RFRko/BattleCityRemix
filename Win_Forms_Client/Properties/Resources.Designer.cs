@@ -73,6 +73,36 @@ namespace Tanki.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap brake_brick {
+            get {
+                object obj = ResourceManager.GetObject("brake_brick", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap brake_wall {
+            get {
+                object obj = ResourceManager.GetObject("brake_wall", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap brake_wall2 {
+            get {
+                object obj = ResourceManager.GetObject("brake_wall2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Bullet {
             get {
                 object obj = ResourceManager.GetObject("Bullet", resourceCulture);
@@ -313,6 +343,16 @@ namespace Tanki.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap player_up2 {
+            get {
+                object obj = ResourceManager.GetObject("player_up2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap tree {
             get {
                 object obj = ResourceManager.GetObject("tree", resourceCulture);
@@ -323,9 +363,9 @@ namespace Tanki.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap wall {
+        internal static System.Drawing.Bitmap wall1 {
             get {
-                object obj = ResourceManager.GetObject("wall", resourceCulture);
+                object obj = ResourceManager.GetObject("wall1", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -333,9 +373,9 @@ namespace Tanki.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap wall1 {
+        internal static System.Drawing.Bitmap wall2 {
             get {
-                object obj = ResourceManager.GetObject("wall1", resourceCulture);
+                object obj = ResourceManager.GetObject("wall2", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

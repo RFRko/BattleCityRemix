@@ -74,9 +74,13 @@ namespace Tanki
 					Hide();
 					lobby.ShowDialog();
 					gameClient.END_GAME();
+					Dispose();
 					Close();
 				}
-				else { Close(); }
+				else {
+					Dispose();
+					Close();
+				}
 			}
 			else label3.Text = "Error: Заполните все поля";
 		}
