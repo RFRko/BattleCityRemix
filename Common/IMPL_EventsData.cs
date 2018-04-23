@@ -79,6 +79,7 @@ namespace Tanki
     public class AddressseeHolderFullData : EventArgs
     {
         public Boolean isFull { get; set; }
+        public IAddresssee lastAddedAdresssee { get; set; }
     }
 
     

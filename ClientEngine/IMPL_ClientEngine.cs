@@ -166,6 +166,7 @@ namespace Tanki
 			_CancelationSource.Cancel();
 			_timer.Dispose();
             st_g = false;
+            First_Map = true;
 
             Owner.Sender.SendMessage(new Package()
 			{

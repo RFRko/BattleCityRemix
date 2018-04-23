@@ -48,7 +48,7 @@ namespace Tanki
                 _gamers.Add(newGamer);
                 OnNewAddresssee?.Invoke(this, new NewAddressseeData() { newAddresssee = newGamer });
                 if (GameSetings != null && _gamers.Count == GameSetings.MaxPlayersCount)
-                    OnAddressseeHolderFull?.Invoke(this, new AddressseeHolderFullData() { isFull = true });
+                    OnAddressseeHolderFull?.Invoke(this, new AddressseeHolderFullData() { isFull = true, lastAddedAdresssee = newGamer });
 
             }
         }

@@ -196,21 +196,21 @@ namespace Tanki
                 {
                     ManagerRoom.MooveGamerToRoom(gamer, room_passport);
 
-                    (room as IGameRoom).NotifyGameRoomForEvent(new NotifyJoinedPlayerData() { JoinedAddresssee = gamer });
+                    //(room as IGameRoom).NotifyGameRoomForEvent(new NotifyJoinedPlayerData() { JoinedAddresssee = gamer });
 
-                    // инициировать начало игры
-                    if (room.Gamers.Count() == room.GameSetings.MaxPlayersCount)
-                    {
-                        IPackage pack = new Package()
-                        {
-                            MesseggeType = MesseggeType.StartGame,
-                            Data = null,
-                        };
-                        Owner.Sender.SendMessage(pack, room.Gamers); //Управляющая комната отсылает участникам игровой комнаты
+                    //// инициировать начало игры
+                    //if (room.Gamers.Count() == room.GameSetings.MaxPlayersCount)
+                    //{
+                    //    IPackage pack = new Package()
+                    //    {
+                    //        MesseggeType = MesseggeType.StartGame,
+                    //        Data = null,
+                    //    };
+                    //    Owner.Sender.SendMessage(pack, room.Gamers); //Управляющая комната отсылает участникам игровой комнаты
 
-                        //уведомляем игровую комнату о начале:
-                        (room as IGameRoom).NotifyGameRoomForEvent(new NotifyStartGameData() { EnforceStartGame = true });
-                    }
+                    //    //уведомляем игровую комнату о начале:
+                    //    (room as IGameRoom).NotifyGameRoomForEvent(new NotifyStartGameData() { EnforceStartGame = true });
+                    //}
                 }
                 else
                 {

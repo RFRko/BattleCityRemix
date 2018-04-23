@@ -575,20 +575,26 @@ namespace Tanki
 		/// <summary>
 		/// Метод реализирующий уведомление игроков о конце игры
 		/// </summary>
-		private void SendEndGame()
+		private void SendEndGame(IAddresssee toAddresssee = null)
 		{
 			IPackage pack = new Package();
 			pack.MesseggeType = MesseggeType.EndGame;
 			var adress = Owner as IRoom;
-			Owner.Sender.SendMessage(pack, adress.Gamers);
-		}
-		private void SendStartGame()
+            if (toAddresssee == null)
+                Owner.Sender.SendMessage(pack, adress.Gamers);
+            else
+                Owner.Sender.SendMessage(pack, toAddresssee);
+        }
+        private void SendStartGame(IAddresssee toAddresssee = null)
 		{
 			IPackage pack = new Package();
 			pack.MesseggeType = MesseggeType.StartGame;
 			var adress = Owner as IRoom;
-			Owner.Sender.SendMessage(pack, adress.Gamers);
-		}
+            if (toAddresssee == null)
+                Owner.Sender.SendMessage(pack, adress.Gamers);
+            else
+                Owner.Sender.SendMessage(pack, toAddresssee);
+        }
 		private void Destroy(ITank tank)
 		{
 			var room = Owner as IRoom;
@@ -633,8 +639,17 @@ namespace Tanki
 			var gamer = evntData.newAddresssee as IGamer;
 			//var gamer = room.Gamers.FirstOrDefault(t => t.RemoteEndPoint == evntData.newAddresssee.RemoteEndPoint);
 			this.NewGamer(gamer);
-			//this.Send();
-		}
+			this.Send();
+
+            if (status == GameStatus.Start)
+            {
+                this.SendStartGame(gamer);
+            }
+            if (status == GameStatus.EndGame)
+            {
+                this.SendEndGame(gamer);
+            }
+        }
 		/// <summary>
 		/// Обработка события изменения игрового статуса
 		/// </summary>
@@ -660,22 +675,27 @@ namespace Tanki
 
 		public override void OnAddressseeHolderFull_Handler(object Sender, AddressseeHolderFullData evntData)
 		{
-
-		}
+            //общий сигнал о начале игры при заполнении
+            if (status != GameStatus.Start && status != GameStatus.EndGame)
+            {
+                this.status = GameStatus.Start;
+                this.SendStartGame();
+            }            
+        }
 
 		public void OnNotifyJoinedPlayer_Handler(object Sender, NotifyJoinedPlayerData evntData)
 		{
-			this.Send();
+			//this.Send();
 		}
 
 		public void NotifyStartGame_Handler(Object Sender, NotifyStartGameData evntData)
 		{
-			var room = Owner as IRoom;
-			if (evntData.EnforceStartGame)
-			{
-				this.status = GameStatus.Start;
-				this.SendStartGame();
-			}
+			////var room = Owner as IRoom;
+			////if (evntData.EnforceStartGame)
+			////{
+			////	this.status = GameStatus.Start;
+			////	this.SendStartGame();
+			////}
 			// // РЕАЛИЗОВАТЬ рассылку сообщения о старте игры всем клиентам
 			//this.Send();
 
