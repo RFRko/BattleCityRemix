@@ -323,7 +323,7 @@ namespace Tanki
 				{
 					case BlockType.Brick:obj.HelthPoints = 2;
 						break;
-					case BlockType.Brick2:obj.HelthPoints = 2;
+					case BlockType.Brick2:obj.HelthPoints = 3;
 						break;
 					case BlockType.Concrete:obj.Can_Be_Destroyed = false;
 						break;

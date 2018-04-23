@@ -46,12 +46,13 @@ namespace Tanki
 
 			Blocks = new Dictionary<BlockType, Bitmap>
 			{
-				{ BlockType.Brick, Resources.wall },
+				{ BlockType.Brick, Resources.wall2 },
 				{ BlockType.Brick2, Resources.wall1 },
 				{ BlockType.Concrete, Resources.wall3 },
 				{ BlockType.Tree, Resources.tree },
-				{ BlockType.Health, Resources.life2 }
+				{ BlockType.Health, Resources.life2 },
 			};
+			
 
 			ExplImages = new List<Bitmap>()
 			{
@@ -141,7 +142,13 @@ namespace Tanki
 		private void Draw_Blocks(PaintEventArgs e)
 		{
 			foreach (var i in Map.Blocks)
-				e.Graphics.DrawImage(Blocks[i.blockType], i.Position);
+				if(i.blockType == BlockType.Brick && i.HelthPoints == 1)
+					e.Graphics.DrawImage(Resources.brake_brick, i.Position);
+				else if (i.blockType == BlockType.Brick2 && i.HelthPoints == 2)
+					e.Graphics.DrawImage(Resources.brake_wall, i.Position);
+				else if (i.blockType == BlockType.Brick2 && i.HelthPoints == 1)
+					e.Graphics.DrawImage(Resources.brake_wall2, i.Position);
+				else e.Graphics.DrawImage(Blocks[i.blockType], i.Position);
 		}
 		private void Draw_Tanks(PaintEventArgs e)
 		{
