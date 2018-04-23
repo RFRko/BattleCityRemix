@@ -24,7 +24,7 @@ namespace Tanki
 
             //IIpEPprovider HostEPprovider = new FirstAvailableIP();
 
-            IIpEPprovider HostEPprovider = new PredefinedIP("","127.0.0.1");
+            IIpEPprovider HostEPprovider = new FirstAvailableIP(); //new PredefinedIP("","127.0.0.1");
 
             IServer Srv = new GameServer(HostEPprovider,sysSettings);
 

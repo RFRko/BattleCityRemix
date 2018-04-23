@@ -24,6 +24,7 @@ namespace Tanki
         private AddressFamily _addrFamily;
         public override IPEndPoint CreateIPEndPoint(AddressFamily ipAddrFamily, int port)
         {
+            _addrFamily = ipAddrFamily;
             IPHostEntry HostEntry = Dns.GetHostEntry(Dns.GetHostName());
 
             foreach(var a in HostEntry.AddressList)
@@ -33,7 +34,6 @@ namespace Tanki
                     ipAddress = a;
                     break;
                 }
-
             }
 
             return new IPEndPoint(ipAddress, port);

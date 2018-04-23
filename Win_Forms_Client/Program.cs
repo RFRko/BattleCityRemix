@@ -31,7 +31,7 @@ namespace Tanki
             };
 
 
-            IIpEPprovider epProvider = new PredefinedIP("", "127.0.0.1");
+            IIpEPprovider epProvider = new FirstAvailableIP(); //new PredefinedIP("", "127.0.0.1");
 
             DateTime rndSeedBase = DateTime.Now;            
             Int32 rndSeed = rndSeedBase.Hour + rndSeedBase.Minute + rndSeedBase.Second+ rndSeedBase.Millisecond;

@@ -48,7 +48,8 @@ namespace Tanki
 
         public void AddAddressee(string Id, IAddresssee addresssee)
         {
-            this.adresee_list.Add(Id, addresssee);
+            //this.adresee_list.Add(Id, addresssee);
+            this.adresee_list[Id] = addresssee;
         }
 
         public IAddresssee this[string id]

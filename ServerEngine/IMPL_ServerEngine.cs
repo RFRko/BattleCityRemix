@@ -162,7 +162,7 @@ namespace Tanki
 
 		private void MessagesHandler(IEnumerable<IPackage> list)
 		{
-			//object locker = new object();
+			//object locker = new object(); - локальный локкер бессмыссленный, не выполняет блокировку,  вынес его в область класса
 
             List<IPackage> _disconnected = new List<IPackage>();
 
@@ -178,8 +178,12 @@ namespace Tanki
                         foreach (var m in logoffmsgs)
                         {
                             (Owner as IRoom).RemoveGamer((Guid)m.Sender_Passport); //после этого вызовется событие комнаты OnRemoveAddresssee
-
-                            // ХОТЯ УДАЛИТЬ ТАНК ИЗ  КАРТЫ ПО  ID - можно прямо сдесь.
+                            try
+                            {  // Но удалим танк прямо тут
+                                var tank2remove = tanks.Single((t) => { return t.Tank_ID == m.Sender_Passport; });
+                                tanks.Remove(tank2remove);
+                            }
+                            catch (Exception ex) { };                            
                         }
                     }
 

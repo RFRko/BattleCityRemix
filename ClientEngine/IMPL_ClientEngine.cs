@@ -146,30 +146,27 @@ namespace Tanki
 		{
 			_CancelationSource.Cancel();
 			_timer.Dispose();
-			Owner.Sender.SendMessage(new Package()
+            st_g = false;
+
+            Owner.Sender.SendMessage(new Package()
 			{
 				Sender_Passport = client.Passport,
 				MesseggeType = MesseggeType.RequestLogOff
 			}, client["Room"]);
 
+        }
+        public void exit()
+		{
+            if (st_g == true)
+                StopGame();
             Owner.Sender.SendMessage(new Package()
             {
                 Sender_Passport = client.Passport,
                 MesseggeType = MesseggeType.RequestLogOff
             }, client["Host"]);
 
-        }
-        public void exit()
-		{
-			//StopGame();
-			//Owner.Sender.SendMessage(new Package()
-			//{
-			//	Sender_Passport = client.Passport,
-			//	MesseggeType = MesseggeType.RequestLogOff
-			//}, client["Host"]);
-
             //(Owner as IGameClient).STOP();
-		}
+        }
 
 		public Guid GetPassport()
 		{
