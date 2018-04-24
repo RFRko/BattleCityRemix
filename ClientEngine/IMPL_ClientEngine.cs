@@ -70,25 +70,10 @@ namespace Tanki
 
 			set
 			{
-				//if (start)
-				//{                
-
-                    _ifReadyToSetEntity.WaitOne();
-                    _ifReadyToSendEntity.Reset();
-                        _Entity = value;
-                    _ifReadyToSendEntity.Set();
-
-                    //lock (Entity_locker) _Entity = value;
-                    //var room_IpEndpoint = client["Room"];
-                    //var my_passport = client.Passport;
-
-                    //Owner.Sender.SendMessage(new Package()
-                    //{
-                    //	Sender_Passport = my_passport,
-                    //	Data = value,
-                    //	MesseggeType = MesseggeType.Entity
-                    //}, room_IpEndpoint);
-                //}
+                _ifReadyToSetEntity.WaitOne();
+                _ifReadyToSendEntity.Reset();
+                _Entity = value;
+				_ifReadyToSendEntity.Set();
 			}
 		}
 		public string ErrorText 
@@ -112,6 +97,22 @@ namespace Tanki
 		public int MaxHealthPoints { get; private set; }
 
 
+		public void Action(EntityAction action)
+		{
+			_Entity.Command = action;
+
+
+			var room_IpEndpoint = client["Room"];
+			var my_passport = client.Passport;
+
+
+			Owner.Sender.SendMessage(new Package()
+			{
+				Sender_Passport = my_passport,
+				Data = _Entity,
+				MesseggeType = MesseggeType.Entity
+			}, room_IpEndpoint);
+		}
 		public void CreateGame(GameSetings gameSetings, string player_name)
 		{
 			var connectionData = new ConectionData()

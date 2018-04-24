@@ -16,6 +16,7 @@ namespace Tanki
 		string ErrorText { get; }
 		Size Map_size { get; }
 		int MaxHealthPoints { get; }
+		void Action(EntityAction action);
 		void CreateGame(GameSetings gameSetings, string player_name);
 		void JOINGame(Guid room_guid, string player_name);
 		Guid GetPassport();

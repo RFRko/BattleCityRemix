@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using Tanki.Properties;
@@ -51,8 +52,9 @@ namespace Tanki
 				{ BlockType.Concrete, Resources.wall3 },
 				{ BlockType.Tree, Resources.tree },
 				{ BlockType.Health, Resources.life2 },
+				{ BlockType.Mine, Resources.Mine },
 			};
-			
+
 
 			ExplImages = new List<Bitmap>()
 			{
@@ -78,6 +80,13 @@ namespace Tanki
 			this.ClientSize = size;
 			this.BackColor = Color.Black;
 
+			CanSoot = true;
+			locker = true;
+			timer = new Timer();
+			timer.Tick += (i, s) => { lock (locker) CanSoot = true; };
+			timer.Interval = 1000;
+			timer.Enabled = true;
+
 			Message.Text = "Wating for other players..";
 			Message.Location = new Point(
 				ClientSize.Width / 2 - Message.Size.Width / 2,
@@ -89,7 +98,7 @@ namespace Tanki
 			WatchGame_btn.Visible = false;
 			WatchGame_btn.Enabled = false;
 			WatchGame_btn.Location = new Point(
-				ClientSize.Width / 2 + 5, 
+				ClientSize.Width / 2 + 5,
 				ClientSize.Height / 2 + 30);
 		}
 
@@ -112,6 +121,9 @@ namespace Tanki
 		private int animationSpeed = 20;
 		private int dillay;
 
+		private object locker;
+		private Timer timer;
+		private bool CanSoot;
 
 		protected override void OnPaint(PaintEventArgs e)
 		{
@@ -142,7 +154,7 @@ namespace Tanki
 		private void Draw_Blocks(PaintEventArgs e)
 		{
 			foreach (var i in Map.Blocks)
-				if(i.blockType == BlockType.Brick && i.HelthPoints == 1)
+				if (i.blockType == BlockType.Brick && i.HelthPoints == 1)
 					e.Graphics.DrawImage(Resources.brake_brick, i.Position);
 				else if (i.blockType == BlockType.Brick2 && i.HelthPoints == 2)
 					e.Graphics.DrawImage(Resources.brake_wall, i.Position);
@@ -254,6 +266,8 @@ namespace Tanki
 		}
 		private void _EndGame(string data)
 		{
+			timer.Stop();
+
 			Message.Text = "Game Ower. Winer: " + data;
 			Message.ForeColor = Color.Green;
 			Message.Location = new Point(
@@ -286,6 +300,7 @@ namespace Tanki
 		{
 			Message.Text = "";
 			Message.Visible = false;
+			timer.Start();
 		}
 		private void OnMapChangeHandler(object Sender, GameStateChangeData data)
 		{
@@ -295,7 +310,7 @@ namespace Tanki
 			}
 			catch (Exception e)
 			{
-				
+
 			}
 		}
 		private void onMapChangedProc(IMap map)
@@ -321,13 +336,15 @@ namespace Tanki
 		}
 		private void _onDeath(string message)
 		{
+			timer.Stop();
+
 			Message.Text = "You are dead";
 			Message.ForeColor = Color.Red;
 			Message.Location = new Point(
 				ClientSize.Width / 2 - Message.Size.Width / 2,
 				ClientSize.Height / 2 - Message.Size.Height);
 			Message.Visible = true;
-			
+
 			ToLobby_btn.Click += (i, s) => { this.Close(); };
 			ToLobby_btn.Enabled = true;
 			ToLobby_btn.Visible = true;
@@ -338,7 +355,7 @@ namespace Tanki
 
 			WatchGame_btn.Enabled = true;
 			WatchGame_btn.Visible = true;
-			WatchGame_btn.Click += (i, s) => 
+			WatchGame_btn.Click += (i, s) =>
 			{
 				ToLobby_btn.Visible = false;
 				WatchGame_btn.Visible = false;
@@ -357,12 +374,12 @@ namespace Tanki
 			Close();
 		}
 
-
 		private void GameForm_KeyDown(object sender, KeyEventArgs e)
 		{
-            if (ClientEngine.Entity == null) return;
+			if (ClientEngine.Entity == null) return;
 
-            var newEntity = ClientEngine.Entity;
+			var newEntity = ClientEngine.Entity;
+
 			switch (e.KeyCode)
 			{
 				case Keys.Left:
@@ -395,16 +412,30 @@ namespace Tanki
 					}
 				case Keys.Space:
 					{
-						newEntity.Command = EntityAction.Fire;
-						ClientEngine.Entity = newEntity;
+						if (CanSoot)
+						{
+							ClientEngine.Action(EntityAction.Fire);
+							lock (locker) CanSoot = false;
+							this.OnKeyUp(e);
+						}
 						break;
 					}
-				default: return;
+				case Keys.Enter:
+					{
+						if (CanSoot)
+						{
+							ClientEngine.Action(EntityAction.Mine);
+							lock (locker) CanSoot = false;
+							this.OnKeyUp(e);
+						}
+						break;
+					}
+				default: { return; }
 			}
 		}
 		private void GameForm_KeyUp(object sender, KeyEventArgs e)
 		{
-            if (ClientEngine.Entity == null) return;
+			if (ClientEngine.Entity == null) return;
 			var newEntity = ClientEngine.Entity;
 
 			newEntity.Command = EntityAction.None;
@@ -413,6 +444,7 @@ namespace Tanki
 
 		private void GameForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
+			timer.Stop();
 			//ClientEngine.StopGame();
 		}
 	}

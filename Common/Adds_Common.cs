@@ -31,7 +31,8 @@
 		/// <summary>Сущность передвигается </summary>
 		Move,
 		/// <summary>Сущность стреляет </summary>
-		Fire
+		Fire,
+		Mine
 	}
 	/// <summary> Тип игры </summary>
 	public enum GameType
@@ -94,6 +95,7 @@
 		Brick2,
 		Concrete,
 		Tree,
-		Health
+		Health,
+		Mine
 	}
 }
