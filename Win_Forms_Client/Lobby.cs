@@ -60,6 +60,7 @@ namespace Tanki
 			Hide();
 			gameForm.ShowDialog();
             gameForm.Dispose();
+			clientEngine.GetRoomList();
 			Show();
 		}
 

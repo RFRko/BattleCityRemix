@@ -75,6 +75,7 @@ namespace Tanki
 			gameRoom.OnNotifyStartGame += NotifyStartGame_Handler;
 		}
 
+        private IEntity _winner = null;
         private ManualResetEvent _ready_proc_newGamer = new ManualResetEvent(true);
         private ManualResetEvent _ready_proc_msg = new ManualResetEvent(true);
 
@@ -117,7 +118,7 @@ namespace Tanki
 		/// Метод реализирующий проверку, выполнено ли условие победы в игре
 		/// </summary>
 		/// <returns>Возвращает закончена ли игра</returns>
-		private bool CheckWin()
+		private bool CheckWin(out IEntity winner)
 		{
 			var t = Owner as IRoom;
 			switch (t.GameSetings.GameType)
@@ -129,13 +130,18 @@ namespace Tanki
 						if (tank.Lives > 0)
 							cnt++;
 					}
-					if (cnt == 1) return true;
+                    if (cnt == 1)
+                    {
+                        winner = tanks.FirstOrDefault(z=>z.Lives>0);
+                        return true;
+                    }
 					break;
 				case GameType.FragPerTime:
 					break;
 				case GameType.FlagDefence:
 					break;
 			}
+            winner = null;
 			return false;
 		}
 		private void MoveAll()
@@ -212,7 +218,7 @@ namespace Tanki
                             this.Fire(tmp);
                         }
                     }
-                    if (this.CheckWin())
+                    if (this.CheckWin(out _winner))
                     {
                         var room = Owner as IRoom;
                         this.status = GameStatus.EndGame;
@@ -239,12 +245,16 @@ namespace Tanki
 				if (tnk.HelthPoints > 0) tnk.HelthPoints--;
 				if(tnk.HelthPoints==0)
 				{
-					if (tnk.Lives > 0)
+					if (tnk.Lives > 1)
 					{
-						tnk.Lives--;
+                        tnk.Position = this.Reload();
+                        tnk.Lives--;
 						tnk.HelthPoints = 5;
-						tnk.Position = this.Reload();
 					}
+                    else if (tnk.Lives == 1)
+                    {
+                        tnk.Lives--;
+                    }
                     if(tnk.Lives<=0)
                     {
                         this.DeadCache.Add(tnk);
@@ -341,7 +351,7 @@ namespace Tanki
 				{
 					case BlockType.Brick:obj.HelthPoints = 2;
 						break;
-					case BlockType.Brick2:obj.HelthPoints = 2;
+					case BlockType.Brick2:obj.HelthPoints = 3;
 						break;
 					case BlockType.Concrete:obj.Can_Be_Destroyed = false;
 						break;
@@ -435,22 +445,22 @@ namespace Tanki
 				switch (bullet.Direction)
 				{
 					case Direction.Left:
-						pos = new Point(bullet.Position.X - room.GameSetings.GameSpeed, bullet.Position.Y);
+						pos = new Point(bullet.Position.X - room.GameSetings.GameSpeed-3, bullet.Position.Y);
 						bullet.Position = new Rectangle(pos, new Size(room.GameSetings.Bullet_size, room.GameSetings.Bullet_size));
 						break;
 
 					case Direction.Right:
-						pos = new Point(bullet.Position.X + room.GameSetings.GameSpeed, bullet.Position.Y);
+						pos = new Point(bullet.Position.X + room.GameSetings.GameSpeed+3, bullet.Position.Y);
 						bullet.Position = new Rectangle(pos, new Size(room.GameSetings.Bullet_size, room.GameSetings.Bullet_size));
 						break;
 
 					case Direction.Up:
-						pos = new Point(bullet.Position.X, bullet.Position.Y - room.GameSetings.GameSpeed);
+						pos = new Point(bullet.Position.X, bullet.Position.Y - room.GameSetings.GameSpeed-3);
 						bullet.Position = new Rectangle(pos, new Size(room.GameSetings.Bullet_size, room.GameSetings.Bullet_size));
 						break;
 
 					case Direction.Down:
-						pos = new Point(bullet.Position.X, bullet.Position.Y + room.GameSetings.GameSpeed);
+						pos = new Point(bullet.Position.X, bullet.Position.Y + room.GameSetings.GameSpeed+3);
 						bullet.Position = new Rectangle(pos, new Size(room.GameSetings.Bullet_size, room.GameSetings.Bullet_size));
 						break;
 				}
@@ -582,15 +592,18 @@ namespace Tanki
 		/// <summary>
 		/// Метод реализирующий уведомление игроков о конце игры
 		/// </summary>
+
 		private void SendEndGame(IAddresssee toAddresssee = null)
 		{
 			IPackage pack = new Package();
+            pack.Data = _winner;  // сделал _winner приватным на уровне класса, присваивается в CheckWin
 			pack.MesseggeType = MesseggeType.EndGame;
 			var adress = Owner as IRoom;
+            
             if (toAddresssee == null)
                 Owner.Sender.SendMessage(pack, adress.Gamers);
             else
-                Owner.Sender.SendMessage(pack, toAddresssee);
+                Owner.Sender.SendMessage(pack, toAddresssee); //нужно для присоединившхся в ходе игры (пока комната не закрыта, но конец игры наступил)
         }
         private void SendStartGame(IAddresssee toAddresssee = null)
 		{
@@ -600,14 +613,14 @@ namespace Tanki
             if (toAddresssee == null)
                 Owner.Sender.SendMessage(pack, adress.Gamers);
             else
-                Owner.Sender.SendMessage(pack, toAddresssee);
+                Owner.Sender.SendMessage(pack, toAddresssee); //нужно для присоединившхся в ходе игры
         }
 		private void Destroy(ITank tank)
 		{
 			var room = Owner as IRoom;
-			var adress = new Addresssee(room.Gamers.FirstOrDefault(g => g.Passport == tank.Tank_ID).RemoteEndPoint);
+			//var adress = new Addresssee(room.Gamers.FirstOrDefault(g => g.Passport == tank.Tank_ID).RemoteEndPoint);
 			IPackage pack = new Package() { Data = tank, MesseggeType = MesseggeType.TankDeath };
-			Owner.Sender.SendMessage(pack, adress);
+			Owner.Sender.SendMessage(pack, room.Gamers);
 		}
 
 		// Нужно вызывать эту чепуху при новом игроке в комнате, метод ниже мне не подходит, по причине - мне не нужен ендпоинт, мне нужен гуид
@@ -652,6 +665,8 @@ namespace Tanki
 			this.NewGamer(gamer);
 			this.Send();
 
+            //обработка присоденившихся в ходе идущей игры (когда статус не WaitForStart)
+            // .. когда стаус WaitForStart - старт игры рассылается всем при заполнении комнаты в обработчике OnAddressseeHolderFull_Handler
             if (status == GameStatus.Start)
             {
                 this.SendStartGame(gamer);

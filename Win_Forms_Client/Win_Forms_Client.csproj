@@ -131,33 +131,6 @@
     <None Include="Resources\wall.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\enemy_down.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\enemy_left.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\enemy_right.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\enemy_up.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\player_down.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\player_left.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\player_right.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\player_up.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\tree.bmp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\wall1.bmp" />
   </ItemGroup>
   <ItemGroup>
@@ -207,6 +180,54 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\life.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\life2.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\wall2.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\wall5.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\brake brick.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\brake wall.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\brake wall2.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\tree.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\player_up2.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\player_down.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\player_left.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\player_right.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\player_up.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\enemy_down.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\enemy_left.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\enemy_right.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\enemy_up.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

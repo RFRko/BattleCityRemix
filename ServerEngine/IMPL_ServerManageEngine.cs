@@ -291,6 +291,7 @@ namespace Tanki
 
 
         }
+
 		private void Disconect(IPackage msg)
 		{
             Guid playerId = msg.Sender_Passport;
