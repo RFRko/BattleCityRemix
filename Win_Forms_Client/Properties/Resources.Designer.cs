@@ -103,6 +103,16 @@ namespace Tanki.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap brake_wall3 {
+            get {
+                object obj = ResourceManager.GetObject("brake_wall3", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Bullet {
             get {
                 object obj = ResourceManager.GetObject("Bullet", resourceCulture);
@@ -296,6 +306,16 @@ namespace Tanki.Properties {
         internal static System.Drawing.Bitmap life2 {
             get {
                 object obj = ResourceManager.GetObject("life2", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Mine {
+            get {
+                object obj = ResourceManager.GetObject("Mine", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
