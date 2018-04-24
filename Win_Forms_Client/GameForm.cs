@@ -54,8 +54,7 @@ namespace Tanki
 				{ BlockType.Health, Resources.life2 },
 				{ BlockType.Mine, Resources.Mine },
 			};
-
-
+			
 			ExplImages = new List<Bitmap>()
 			{
 				Resources.explosion1,
@@ -80,6 +79,7 @@ namespace Tanki
 			this.ClientSize = size;
 			this.BackColor = Color.Black;
 
+			//KeysDown = new Queue<KeyEventArgs>();
 			CanSoot = true;
 			locker = true;
 			timer = new Timer();
@@ -108,6 +108,7 @@ namespace Tanki
 		private Dictionary<Direction, Bitmap> Player;
 		private Dictionary<BlockType, Bitmap> Blocks;
 		private List<Bitmap> ExplImages;
+		//private Queue<KeyEventArgs> KeysDown;
 
 		private Action<IMap> onMapChanged;
 		private Action<ITank> DeathAnimation;
@@ -157,9 +158,9 @@ namespace Tanki
 				if (i.blockType == BlockType.Brick && i.HelthPoints == 1)
 					e.Graphics.DrawImage(Resources.brake_brick, i.Position);
 				else if (i.blockType == BlockType.Brick2 && i.HelthPoints == 2)
-					e.Graphics.DrawImage(Resources.brake_wall, i.Position);
-				else if (i.blockType == BlockType.Brick2 && i.HelthPoints == 1)
 					e.Graphics.DrawImage(Resources.brake_wall2, i.Position);
+				else if (i.blockType == BlockType.Brick2 && i.HelthPoints == 1)
+					e.Graphics.DrawImage(Resources.brake_wall3, i.Position);
 				else e.Graphics.DrawImage(Blocks[i.blockType], i.Position);
 		}
 		private void Draw_Tanks(PaintEventArgs e)
@@ -384,6 +385,7 @@ namespace Tanki
 			{
 				case Keys.Left:
 					{
+						//KeysDown.Enqueue(e);
 						newEntity.Direction = Direction.Left;
 						newEntity.Command = EntityAction.Move;
 						ClientEngine.Entity = newEntity;
@@ -391,6 +393,7 @@ namespace Tanki
 					}
 				case Keys.Right:
 					{
+						//KeysDown.Enqueue(e);
 						newEntity.Direction = Direction.Right;
 						newEntity.Command = EntityAction.Move;
 						ClientEngine.Entity = newEntity;
@@ -398,6 +401,7 @@ namespace Tanki
 					}
 				case Keys.Up:
 					{
+						//KeysDown.Enqueue(e);
 						newEntity.Direction = Direction.Up;
 						newEntity.Command = EntityAction.Move;
 						ClientEngine.Entity = newEntity;
@@ -405,6 +409,7 @@ namespace Tanki
 					}
 				case Keys.Down:
 					{
+						//KeysDown.Enqueue(e);
 						newEntity.Direction = Direction.Down;
 						newEntity.Command = EntityAction.Move;
 						ClientEngine.Entity = newEntity;
@@ -436,6 +441,17 @@ namespace Tanki
 		private void GameForm_KeyUp(object sender, KeyEventArgs e)
 		{
 			if (ClientEngine.Entity == null) return;
+
+			//if (KeysDown.Count > 0)
+			//{
+			//	KeysDown.Dequeue();
+			//	if (KeysDown.Count > 0)
+			//	{
+			//		this.OnKeyDown(KeysDown.Dequeue());
+			//		return;
+			//	}
+			//};
+
 			var newEntity = ClientEngine.Entity;
 
 			newEntity.Command = EntityAction.None;

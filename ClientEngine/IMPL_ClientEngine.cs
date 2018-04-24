@@ -261,6 +261,7 @@ namespace Tanki
 				case MesseggeType.TankDeath:
 					{
 						var tank = package.Data as ITank;
+						//if (tank.Tank_ID == client.Passport && tank.Lives == 0)
 						if (tank.Tank_ID == client.Passport)
 						{
 							//StopGame();

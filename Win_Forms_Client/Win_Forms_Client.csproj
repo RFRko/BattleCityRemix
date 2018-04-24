@@ -191,9 +191,6 @@
     <None Include="Resources\wall5.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\brake brick.bmp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\brake wall.bmp" />
   </ItemGroup>
   <ItemGroup>
@@ -231,6 +228,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Mine.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\brake brick.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\brake wall3.bmp" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
