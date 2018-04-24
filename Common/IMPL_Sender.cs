@@ -114,31 +114,68 @@ namespace Tanki
         public void SendMessage(IPackage msg, IPEndPoint Target)
         {
             Byte[] msg_bytes = get_msg_bytes(msg);
-            _lockal_udp_client.Send(msg_bytes,msg_bytes.Length, Target);
+            try
+            {
+                _lockal_udp_client.Send(msg_bytes, msg_bytes.Length, Target);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(" ..logoff");
+            }
         }
 
         public void SendMessage(IPackage msg, IEnumerable<IPEndPoint> Targets)
         {
             Byte[] msg_bytes = get_msg_bytes(msg);
             Parallel.ForEach(Targets,
-                (currentTagret, loopState, index) => { _lockal_udp_client.Send(msg_bytes, msg_bytes.Length, currentTagret); }
+                (currentTagret, loopState, index) => 
+                {
+                    try
+                    {
+                        _lockal_udp_client.Send(msg_bytes, msg_bytes.Length, currentTagret);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(" ..logoff");
+                    }
+                }
              );
         }
 
         public void SendMessage(IPackage msg, IAddresssee Target)
         {
             Byte[] msg_bytes = get_msg_bytes(msg);
-            _lockal_udp_client.Send(msg_bytes, msg_bytes.Length, Target.RemoteEndPoint);
-
+            try
+            {
+                _lockal_udp_client.Send(msg_bytes, msg_bytes.Length, Target.RemoteEndPoint);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(" ..logoff");
+            }
         }
 
         public void SendMessage(IPackage msg, IEnumerable<IAddresssee> Targets)
         {
             Byte[] msg_bytes = get_msg_bytes(msg);
             Parallel.ForEach(Targets,
-                (currentTagret, loopState, index) => { _lockal_udp_client.Send(msg_bytes, msg_bytes.Length, currentTagret.RemoteEndPoint); }
+                (currentTagret, loopState, index) => 
+                {
+                    try
+                    {
+                        _lockal_udp_client.Send(msg_bytes, msg_bytes.Length, currentTagret.RemoteEndPoint);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(" ..logoff");
+                    }
+                }
              );
         }
 
+        public void Dispose()
+        {
+            _lockal_udp_client.Close();
+        }
     }
 }

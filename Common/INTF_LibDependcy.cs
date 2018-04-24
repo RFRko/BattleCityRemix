@@ -28,6 +28,7 @@ namespace Tanki
     public interface IAddressseeHolderBase
     {
         event EventHandler<NewAddressseeData> OnNewAddresssee;
+        event EventHandler<RemoveAddressseeData> OnRemoveAddresssee;
         event EventHandler<AddressseeHolderFullData> OnAddressseeHolderFull;
     }
 
@@ -42,6 +43,7 @@ namespace Tanki
     {
 
         void OnNewAddresssee_Handler(Object Sender, NewAddressseeData evntData);
+        void OnRemoveAddresssee_Handler(Object Sender, RemoveAddressseeData evntData);
         void OnAddressseeHolderFull_Handler(Object Sender, AddressseeHolderFullData evntData);
     }
 
@@ -70,6 +72,8 @@ namespace Tanki
         IGameSetings GameSetings { get; set; }
         IEnumerable<IGamer> Gamers { get; }
         void AddGamer(IGamer newGamer);
+        void RemoveGamer(IGamer delGamer);
+        void RemoveGamer(Guid delGamerId);
         IRoomStat getRoomStat();
 		GameStatus Status { get; set; }
         RoomType Room_Type { get; }
@@ -84,6 +88,7 @@ namespace Tanki
         IRoomStat getRoomStat(String forRoomID);
         IEnumerable<IRoomStat> getRoomsStat();
         IPEndPoint MooveGamerToRoom(IGamer gamer, Guid TargetRoomId);
+        void RemoveGamerFromRoom(IGamer gamer, Guid TargetRoomId);
         IRoom AddRoom(IGameSetings gameSettings, Guid Creator_Passport);
         IRoom GetRoomByGuid(Guid roomGuid);
         IGamer GetGamerByGuid(Guid gamerGuid);
@@ -97,7 +102,8 @@ namespace Tanki
     public interface IManagerRoomOwner: IRoomOwner
     {
         IEnumerable<IRoomStat> getRoomsStat();
-        IPEndPoint MooveGamerToRoom(IGamer gamer, Guid TargetRoomId);        
+        IPEndPoint MooveGamerToRoom(IGamer gamer, Guid TargetRoomId);
+        void RemoveGamerFromRoom(IGamer gamer, Guid TargetRoomId);
         IRoom AddRoom(IGameSetings gameSettings, Guid Creator_Passport);
         IRoom GetRoomByGuid(Guid roomGuid);
     }
@@ -111,6 +117,7 @@ namespace Tanki
         event EventHandler<GameStatusChangedData> OnNewGameStatus;
         event EventHandler<NotifyJoinedPlayerData> OnNotifyJoinedPlayer;
         event EventHandler<NotifyStartGameData> OnNotifyStartGame;
+        event EventHandler<NotifyRemovePlayerData> OnNotifyRemovePlayer;
 
     }
 
@@ -132,8 +139,12 @@ namespace Tanki
     public interface IGameClient
     {
         IEntity ClientGameState { get; set; }
-        void RUN_GAME(); // запускает таймер переодической отправки клиентского состоянения игры на сервер
-        void END_GAME();
+        void RUN();  //запускает базовый NetProcessorAbs.RUN (очередь\reciver)
+        void STOP(); // останавленивает базовый NetProcessorAbs.STOP (очередь\reciver)
+        #region moved_to_client_engine
+        //void RUN_GAME(); // запускает таймер переодической отправки клиентского состоянения игры на сервер
+        //void STOP_GAME(); // останавливает таймер переодической отправки клиентского состоянения игры на сервер
+        #endregion moved_to_client_engine
         Guid Passport { get; set; }
         bool Connect(IPEndPoint ServerEndPoint);
 		void AddAddressee(String Id, IAddresssee addresssee);
@@ -148,7 +159,8 @@ namespace Tanki
                                              //Адресат это объект с IPEndPoint комнаты (может быть как минимум два аддерсата - управляющая комната, текущая игровая комната
 
 
-        void RUN(IPEndPoint ServerEndPoint); // создаем тспклиент с serverendpoint, через него запускает базовый NetProcessorAbs.RUN (очередь\reciver), коннектится к cерверу
+        void RUN(); // создаем тспклиент с serverendpoint, через него запускает базовый NetProcessorAbs.RUN (очередь\reciver), коннектится к cерверу
+        void STOP();
         IEntity ClientGameState { get; set; }   // польностью вернуть объект
         void OnClientGameStateChangedHandler(Object Sender, GameStateChangeData evntData); // просто реализовать метод на котрый что-то подпишеи
         event EventHandler<EnforceDrawingData> EnforceDrawing;  // дернет движок, просто делегат

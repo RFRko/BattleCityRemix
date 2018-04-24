@@ -75,11 +75,14 @@ namespace Tanki
 			gameRoom.OnNotifyStartGame += NotifyStartGame_Handler;
 		}
 
+        private IEntity _winner = null;
+        private ManualResetEvent _ready_proc_newGamer = new ManualResetEvent(true);
+        private ManualResetEvent _ready_proc_msg = new ManualResetEvent(true);
 
-		/// <summary>
-		/// Ширина игрового поля
-		/// </summary>
-		public int Width { get { return this.width; } set { this.width = value; } }
+        /// <summary>
+        /// Ширина игрового поля
+        /// </summary>
+        public int Width { get { return this.width; } set { this.width = value; } }
 		/// <summary>
 		/// Высота игрового поля
 		/// </summary>
@@ -127,7 +130,11 @@ namespace Tanki
 						if (tank.Lives > 0)
 							cnt++;
 					}
-                    if (cnt == 1) {winner=tanks.FirstOrDefault(z=>z.Lives==1); return true; }
+                    if (cnt == 1)
+                    {
+                        winner = tanks.FirstOrDefault(z=>z.Lives>0);
+                        return true;
+                    }
 					break;
 				case GameType.FragPerTime:
 					break;
@@ -154,65 +161,82 @@ namespace Tanki
             //		this.Move(bullets[i]);
             //}
         }
-		/// <summary>
-		/// Реализация делегата ProcessMessagesHandler
-		/// </summary>
-		/// <param name="list">Список пакетов переданый движку на обработку</param>
+        /// <summary>
+        /// Реализация делегата ProcessMessagesHandler
+        /// </summary>
+        /// <param name="list">Список пакетов переданый движку на обработку</param>
+        /// 
+        private Object locker = new Object();
+
 		private void MessagesHandler(IEnumerable<IPackage> list)
 		{
+			//object locker = new object(); - локальный локкер бессмыссленный, не выполняет блокировку,  вынес его в область класса
 
-			//foreach(var i in list)
-			//{
-			//	if (i.MesseggeType == MesseggeType.RequestLogOff)
-			//		Disconect(i.Sender_Passport);
-			//}
+            List<IPackage> _disconnected = new List<IPackage>();
 
-			object locker = new object();
-			if (this.status == GameStatus.Start)
-			{
-                IEntity winner;
-				lock (locker)
-				{
-					list = from t in list
-						   where !(from dead in DeadCache select dead.Tank_ID).Contains((t.Data as ITank).Tank_ID) 
-						   select t;
+            _ready_proc_newGamer.Reset();
+            _ready_proc_msg.WaitOne();
 
-                   this.MoveAll();
-                    if (colInd.Next(1, 1000) == 555) this.HealthBlock();
+            lock(locker)
+            {
+                if (this.status == GameStatus.Start)
+                {
+                    // обработка сообщений об отключении от комнаты
+                    var logoffmsgs = from m in list where m.MesseggeType == MesseggeType.RequestLogOff select m;
+                    if (logoffmsgs != null && logoffmsgs.Count() > 0)
+                    {
+                        foreach (var m in logoffmsgs)
+                        {
+                            (Owner as IRoom).RemoveGamer((Guid)m.Sender_Passport); //после этого вызовется событие комнаты OnRemoveAddresssee
+                            try
+                            {  // Но удалим танк прямо тут
+                                var tank2remove = tanks.Single((t) => { return t.Tank_ID == m.Sender_Passport; });
+                                tanks.Remove(tank2remove);
+                            }
+                            catch (Exception ex) { };
+                        }
+                    }
+
+                    // берем сообщения только типа Tank кроме убитых
+                    list = from m in list
+                            where (m.MesseggeType != MesseggeType.RequestLogOff &&
+                                    m.Data != null &&
+                                    !(from dead in DeadCache select dead.Tank_ID).Contains((m.Data as ITank).Tank_ID))
+                            select m;
+
+                    this.MoveAll();
+                    if (colInd.Next(1, 10000) == 555) this.HealthBlock();
                     foreach (var t in list)
-					{
-						var tmp = t.Data as IEntity;
-						if (tmp.Command == EntityAction.Move)
-						{
-							this.Move(tmp);
-						}
-						if (tmp.Command == EntityAction.Fire)
-						{
-							this.Fire(tmp);
-						}
-					}
-					if (this.CheckWin(out winner))
-					{
-						var room = Owner as IRoom;
+                    {
+                        var tmp = t.Data as IEntity;
+                        if (tmp.Command == EntityAction.Move)
+                        {
+                            this.Move(tmp);
+                        }
+                        if (tmp.Command == EntityAction.Fire)
+                        {
+                            this.Fire(tmp);
+                        }
+                    }
+                    if (this.CheckWin(out _winner))
+                    {
+                        var room = Owner as IRoom;
                         this.status = GameStatus.EndGame;
-						room.Status = GameStatus.EndGame;
-						this.SendEndGame(winner);
-					}
-					this.Send();
-				}
-			}
-		}
+                        room.Status = GameStatus.EndGame;
+                        this.SendEndGame();
+                    }
+                    this.Send();
+                }
+            }
+            
+            _ready_proc_newGamer.Set();
 
-		private void Disconect(Guid passprt)
-		{
-			//Игрок закрыл игровую форму и вернулся в лоби
-		}
-
-		/// <summary>
-		/// Метод реализирующий обработку "убитой" сущности
-		/// </summary>
-		/// <param name="entity">"Убитая" сущность</param>
-		private void Death(IEntity entity)
+        }
+        /// <summary>
+        /// Метод реализирующий обработку "убитой" сущности
+        /// </summary>
+        /// <param name="entity">"Убитая" сущность</param>
+        private void Death(IEntity entity)
 		{
 
 			if (entity is ITank)
@@ -221,12 +245,16 @@ namespace Tanki
 				if (tnk.HelthPoints > 0) tnk.HelthPoints--;
 				if(tnk.HelthPoints==0)
 				{
-					if (tnk.Lives > 0)
+					if (tnk.Lives > 1)
 					{
-						tnk.Lives--;
+                        tnk.Position = this.Reload();
+                        tnk.Lives--;
 						tnk.HelthPoints = 5;
-						tnk.Position = this.Reload();
 					}
+                    else if (tnk.Lives == 1)
+                    {
+                        tnk.Lives--;
+                    }
                     if(tnk.Lives<=0)
                     {
                         this.DeadCache.Add(tnk);
@@ -417,22 +445,22 @@ namespace Tanki
 				switch (bullet.Direction)
 				{
 					case Direction.Left:
-						pos = new Point(bullet.Position.X - room.GameSetings.GameSpeed, bullet.Position.Y);
+						pos = new Point(bullet.Position.X - room.GameSetings.GameSpeed-3, bullet.Position.Y);
 						bullet.Position = new Rectangle(pos, new Size(room.GameSetings.Bullet_size, room.GameSetings.Bullet_size));
 						break;
 
 					case Direction.Right:
-						pos = new Point(bullet.Position.X + room.GameSetings.GameSpeed, bullet.Position.Y);
+						pos = new Point(bullet.Position.X + room.GameSetings.GameSpeed+3, bullet.Position.Y);
 						bullet.Position = new Rectangle(pos, new Size(room.GameSetings.Bullet_size, room.GameSetings.Bullet_size));
 						break;
 
 					case Direction.Up:
-						pos = new Point(bullet.Position.X, bullet.Position.Y - room.GameSetings.GameSpeed);
+						pos = new Point(bullet.Position.X, bullet.Position.Y - room.GameSetings.GameSpeed-3);
 						bullet.Position = new Rectangle(pos, new Size(room.GameSetings.Bullet_size, room.GameSetings.Bullet_size));
 						break;
 
 					case Direction.Down:
-						pos = new Point(bullet.Position.X, bullet.Position.Y + room.GameSetings.GameSpeed);
+						pos = new Point(bullet.Position.X, bullet.Position.Y + room.GameSetings.GameSpeed+3);
 						bullet.Position = new Rectangle(pos, new Size(room.GameSetings.Bullet_size, room.GameSetings.Bullet_size));
 						break;
 				}
@@ -564,21 +592,29 @@ namespace Tanki
 		/// <summary>
 		/// Метод реализирующий уведомление игроков о конце игры
 		/// </summary>
-		private void SendEndGame(IEntity winner)
+
+		private void SendEndGame(IAddresssee toAddresssee = null)
 		{
 			IPackage pack = new Package();
-            pack.Data = winner;
+            pack.Data = _winner;  // сделал _winner приватным на уровне класса, присваивается в CheckWin
 			pack.MesseggeType = MesseggeType.EndGame;
 			var adress = Owner as IRoom;
-		    Owner.Sender.SendMessage(pack, adress.Gamers);
-		}
-		private void SendStartGame()
+            
+            if (toAddresssee == null)
+                Owner.Sender.SendMessage(pack, adress.Gamers);
+            else
+                Owner.Sender.SendMessage(pack, toAddresssee); //нужно для присоединившхся в ходе игры (пока комната не закрыта, но конец игры наступил)
+        }
+        private void SendStartGame(IAddresssee toAddresssee = null)
 		{
 			IPackage pack = new Package();
 			pack.MesseggeType = MesseggeType.StartGame;
 			var adress = Owner as IRoom;
-			Owner.Sender.SendMessage(pack, adress.Gamers);
-		}
+            if (toAddresssee == null)
+                Owner.Sender.SendMessage(pack, adress.Gamers);
+            else
+                Owner.Sender.SendMessage(pack, toAddresssee); //нужно для присоединившхся в ходе игры
+        }
 		private void Destroy(ITank tank)
 		{
 			var room = Owner as IRoom;
@@ -600,7 +636,7 @@ namespace Tanki
 			obj.Size = room.GameSetings.ObjectsSize;
 			obj.Tank_ID = gamer.Passport;
 			obj.Name = gamer.Name;
-			obj.Lives = 1;
+			obj.Lives = 3;
 			obj.HelthPoints = 5;
 			//obj.Is_Alive = true;
 			obj.Can_Be_Destroyed = true;
@@ -617,20 +653,38 @@ namespace Tanki
 		/// <param name="evntData">Данные о подключении</param>
 		public override void OnNewAddresssee_Handler(object Sender, NewAddressseeData evntData)
 		{
-			if (this.mapgen == false)
+            _ready_proc_msg.Reset();
+            _ready_proc_newGamer.WaitOne();
+
+
+            if (this.mapgen == false)
 				this.GenerateMap();
 			var room = Owner as IRoom;
 			var gamer = evntData.newAddresssee as IGamer;
 			//var gamer = room.Gamers.FirstOrDefault(t => t.RemoteEndPoint == evntData.newAddresssee.RemoteEndPoint);
 			this.NewGamer(gamer);
-			//this.Send();
-		}
-		/// <summary>
-		/// Обработка события изменения игрового статуса
-		/// </summary>
-		/// <param name="Sender">Объект изменивший игровой статус</param>
-		/// <param name="statusData"> Данные о новом игровом статуса</param>
-		public void OnNewGameStatus_Handler(object Sender, GameStatusChangedData statusData)
+			this.Send();
+
+            //обработка присоденившихся в ходе идущей игры (когда статус не WaitForStart)
+            // .. когда стаус WaitForStart - старт игры рассылается всем при заполнении комнаты в обработчике OnAddressseeHolderFull_Handler
+            if (status == GameStatus.Start)
+            {
+                this.SendStartGame(gamer);
+            }
+            if (status == GameStatus.EndGame)
+            {
+                this.SendEndGame(gamer);
+            }
+
+            _ready_proc_msg.Set();
+
+        }
+        /// <summary>
+        /// Обработка события изменения игрового статуса
+        /// </summary>
+        /// <param name="Sender">Объект изменивший игровой статус</param>
+        /// <param name="statusData"> Данные о новом игровом статуса</param>
+        public void OnNewGameStatus_Handler(object Sender, GameStatusChangedData statusData)
 		{
 
 			//this.status = statusData.newStatus;
@@ -650,26 +704,35 @@ namespace Tanki
 
 		public override void OnAddressseeHolderFull_Handler(object Sender, AddressseeHolderFullData evntData)
 		{
-
-		}
+            //общий сигнал о начале игры при заполнении
+            if (status == GameStatus.WaitForStart)
+            {
+                this.status = GameStatus.Start;
+                this.SendStartGame();
+            }
+        }
 
 		public void OnNotifyJoinedPlayer_Handler(object Sender, NotifyJoinedPlayerData evntData)
 		{
-			this.Send();
+			//this.Send();
 		}
 
 		public void NotifyStartGame_Handler(Object Sender, NotifyStartGameData evntData)
 		{
-			var room = Owner as IRoom;
-			if (evntData.EnforceStartGame)
-			{
-				this.status = GameStatus.Start;
-				this.SendStartGame();
-			}
+			////var room = Owner as IRoom;
+			////if (evntData.EnforceStartGame)
+			////{
+			////	this.status = GameStatus.Start;
+			////	this.SendStartGame();
+			////}
 			// // РЕАЛИЗОВАТЬ рассылку сообщения о старте игры всем клиентам
 			//this.Send();
 
 		}
 
-	}
+        public override void OnRemoveAddresssee_Handler(object Sender, RemoveAddressseeData evntData)
+        {
+            //throw new NotImplementedException();
+        }
+    }
 }

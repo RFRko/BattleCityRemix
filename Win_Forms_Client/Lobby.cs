@@ -59,6 +59,7 @@ namespace Tanki
 			var gameForm = new GameForm(clientEngine, MapSize);
 			Hide();
 			gameForm.ShowDialog();
+            gameForm.Dispose();
 			clientEngine.GetRoomList();
 			Show();
 		}

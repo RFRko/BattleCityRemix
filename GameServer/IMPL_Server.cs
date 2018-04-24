@@ -156,5 +156,22 @@ namespace Tanki
 
             return newGameRoom;
         }
+
+        public void RemoveGamerFromRoom(IGamer gamer, Guid TargetRoomId)
+        {
+            IRoom targetRoom;
+
+            var selRoom = from r in Rooms where r.Passport == TargetRoomId select r;
+            targetRoom = selRoom.First();
+
+            try
+            {
+                targetRoom.AddGamer(gamer);                
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
 }

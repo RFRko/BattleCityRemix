@@ -23,6 +23,7 @@ namespace Tanki
 		}
 
 		private IGameClient client;
+        private Guid _gameRoomPassport;
 		private object Map_locker = new object();
 		private object Entity_locker = new object();
 		private bool First_Map;
@@ -32,7 +33,7 @@ namespace Tanki
 		private volatile ITank _Entity = null;
 		private string _ErrorText = null;
 		private Size _MapSize;
-		//private bool st_g = false;
+		private bool st_g = false;
 		//private int count = 0;
 		//Stopwatch stopWatch = new Stopwatch();
 
@@ -60,7 +61,10 @@ namespace Tanki
 
 			protected set
 			{
-				lock (Map_locker) { _Map = value; }
+				lock (Map_locker)
+                {
+                    _Map = value;
+                }
 				OnMapChanged?.BeginInvoke(this, new GameStateChangeData() { newMap = value }, null, null);
 			}
 		}
@@ -143,25 +147,53 @@ namespace Tanki
 				MesseggeType = MesseggeType.RoomID
 			}, client["Host"]);
 		}
-		public void StopGame()
+
+        public void ConfirmJoinRoom()
+        {
+            var ConfirmJoinRoomData = new ConfirmJoinToRoom()
+            {
+                ClientPassport = GetPassport(),
+                RoomPassport = _gameRoomPassport
+            };
+
+            Owner.Sender.SendMessage(new Package()
+            {
+                Sender_Passport = client.Passport,
+                Data = ConfirmJoinRoomData,
+                MesseggeType = MesseggeType.ConfirmJoinRoom
+            }, client["Host"]);
+
+        }
+
+        public void StopGame()
 		{
 			_CancelationSource.Cancel();
 			_timer.Dispose();
-			Owner.Sender.SendMessage(new Package()
+            st_g = false;
+            First_Map = true;
+            Map = null;
+            _ifReadyToSendEntity.Reset();
+            _ifReadyToSetEntity.Reset();
+
+            Owner.Sender.SendMessage(new Package()
 			{
 				Sender_Passport = client.Passport,
 				MesseggeType = MesseggeType.RequestLogOff
 			}, client["Room"]);
-		}
-		public void exit()
+
+        }
+        public void exit()
 		{
-			StopGame();
-			Owner.Sender.SendMessage(new Package()
-			{
-				Sender_Passport = client.Passport,
-				MesseggeType = MesseggeType.RequestLogOff
-			}, client["Host"]);
-		}
+            if (st_g == true)
+                StopGame();
+            Owner.Sender.SendMessage(new Package()
+            {
+                Sender_Passport = client.Passport,
+                MesseggeType = MesseggeType.RequestLogOff
+            }, client["Host"]);
+
+            //(Owner as IGameClient).STOP();
+        }
 
 		public Guid GetPassport()
 		{
@@ -223,6 +255,7 @@ namespace Tanki
 			{
 				case MesseggeType.Map:
 					{
+
 						//if (st_g)  count++;
 						//if(stopWatch.Elapsed.Seconds == 10)
 						//{
@@ -254,9 +287,14 @@ namespace Tanki
 				case MesseggeType.RoomInfo:
 					{
 						var roomInfo = package.Data as RoomInfo;
-						client.AddAddressee("Room", roomInfo.roomEndpoint as IAddresssee);
-						Map_size = roomInfo.mapSize;
-						break;
+                        _gameRoomPassport = roomInfo.RoomPassport;
+                        client.AddAddressee("Room", roomInfo.roomEndpoint as IAddresssee);
+
+                        ConfirmJoinRoom();
+                        Map_size = roomInfo.mapSize; //отсюда дергается Engine.OnRoomConnect -> GameForm.OnRoomConnect
+
+
+                        break;
 					}
 				case MesseggeType.TankDeath:
 					{
@@ -274,10 +312,14 @@ namespace Tanki
 					}
 				case MesseggeType.StartGame:
 					{
-						//st_g = true;
+						st_g = true;
+                        //=======
+                        //						//st_g = true;
+                        //>>>>>>> master
 						//stopWatch.Start();
 						_ifReadyToSendEntity.Set();
-						_timerCancelator = _CancelationSource.Token;
+                        _CancelationSource = new CancellationTokenSource();
+                        _timerCancelator = _CancelationSource.Token;
 						_timer = new Timer(SendByTimerCallback, _timerCancelator, 0, timerSpeed);
 						Thread.Sleep(500);
 						onGameStart?.BeginInvoke(this, new ErrorData()
@@ -287,10 +329,20 @@ namespace Tanki
 					}
 				case MesseggeType.EndGame:
 					{
-						//StopGame();
-						onEndGame?.BeginInvoke(this,
-							new ErrorData() { errorText = (package.Data as ITank).Name }, null, null);
-						break;
+
+                        StopGame();
+                        //onGameOwer?.BeginInvoke(this, 
+                        //	new ErrorData() { errorText = "Победил: " + (string)package.Data } , null, null);
+
+                        onEndGame?.BeginInvoke(this,
+                            new ErrorData() { errorText = (package?.Data as ITank).Name }, null, null);
+
+                        //=======
+                        //						//StopGame();
+                        //						onEndGame?.BeginInvoke(this,
+                        //							new ErrorData() { errorText = (package?.Data as ITank).Name }, null, null);
+                        //>>>>>>> master
+                        break;
 					}
 				case MesseggeType.Error:
 					{
@@ -330,5 +382,10 @@ namespace Tanki
         {
 			//nothing to do required yet
 		} // не нужен, требует EngineAbs
-	}
+
+        public override void OnRemoveAddresssee_Handler(object Sender, RemoveAddressseeData evntData)
+        {
+            //nothing to do required yet
+        }
+    }
 }

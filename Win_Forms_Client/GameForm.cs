@@ -16,12 +16,15 @@ namespace Tanki
 		public GameForm(IClientEngine clientEngine, Size size)
 		{
 			ClientEngine = clientEngine;
-			clientEngine.OnMapChanged += OnMapChangeHandler;
-			clientEngine.OnTankDeath += OnTankDeath;
-			clientEngine.OnError += ErrorHandler;
-			clientEngine.onGameStart += OnGameStart;
-			clientEngine.onDeath += onDeath;
-			clientEngine.onEndGame += OnEndGame;
+
+            ClientEngine.OnMapChanged += OnMapChangeHandler;
+            ClientEngine.OnTankDeath += OnTankDeath;
+            ClientEngine.OnError += ErrorHandler;
+            //добавились из мастера
+            ClientEngine.onGameStart += OnGameStart;
+            ClientEngine.onDeath += onDeath;
+            ClientEngine.onEndGame += OnEndGame;
+
 
 			Endgame += _EndGame;
 			Ondeath += _onDeath;
@@ -122,10 +125,12 @@ namespace Tanki
 		private int animationSpeed = 20;
 		private int dillay;
 
+
 		private object locker;
 		private Timer timer;
 		private bool CanSoot;
-
+    private Boolean st_g;
+    
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
@@ -460,8 +465,26 @@ namespace Tanki
 
 		private void GameForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			timer.Stop();
-			//ClientEngine.StopGame();
-		}
+			timer.Stop();	
+			      ClientEngine.StopGame();
+            ClientEngine.OnMapChanged -= OnMapChangeHandler;
+            ClientEngine.OnTankDeath -= OnTankDeath;
+            ClientEngine.OnError -= ErrorHandler;
+
+            onMapChanged -= onMapChangedProc;
+            DeathAnimation -= onDeathAnimation;
+
+
+            ClientEngine.onGameStart -= OnGameStart;
+            ClientEngine.onDeath -= onDeath;
+            ClientEngine.onEndGame -= OnEndGame;
+
+            ClientEngine = null;
+            Map = null;
+        }
+        //=======
+        //			//ClientEngine.StopGame();
+        //		}
+        //>>>>>>> master
 	}
 }

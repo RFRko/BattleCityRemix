@@ -40,10 +40,19 @@ namespace Tanki
         public IAddresssee manageRoomEndpoint { get; set; }
     }
 
-	  [Serializable]
-	  public class RoomInfo : IRoomInfo
-	  {
-		  public IAddresssee roomEndpoint { get; set; }
-		  public Size mapSize { get; set; }
-	  }
+	[Serializable]
+	public class RoomInfo : IRoomInfo
+	{
+        public Guid RoomPassport { get; set; }
+        public IAddresssee roomEndpoint { get; set; }
+		public Size mapSize { get; set; }
+    }
+
+    [Serializable]
+    public class ConfirmJoinToRoom: IConfirmJoinToRoom
+    {
+        public Guid RoomPassport { get; set; }
+        public Guid ClientPassport { get; set; }
+    }
+
 }

@@ -17,6 +17,7 @@ namespace Tanki
         {
             LockalEndPoint = withLockalEP;
             NetClient = new UdpClient(LockalEndPoint);    //было LockalEndPoint.Port
+            _recieving_cancel = _recivingCancelTokenSource.Token;
         }
         public IPEndPoint LockalEndPoint { get; private set; }
 
@@ -35,12 +36,35 @@ namespace Tanki
         {
             RecievingThr = new Thread(RecievingProc);
             RecievingThr.Name = "MAIN_RECIEVING_THREAD";
-
             RecievingThr.Start();
         }
 
-        private bool alive;
+        public void Stop()
+        {
+            lock (_stoping_locker)
+            {
+                _stopping_finished.Reset();
+
+                if (RecievingThr != null &&  
+                    (RecievingThr.ThreadState == ThreadState.Running ||
+                     RecievingThr.ThreadState == ThreadState.Background ||
+                     RecievingThr.ThreadState == ThreadState.WaitSleepJoin)
+                    )
+                {
+                    _recieving_cancel = _recivingCancelTokenSource.Token;
+                    _recivingCancelTokenSource.Cancel();
+                    RecievingThr.Join(5000);
+                }
+                _stopping_finished.Set();
+            }
+        }
+
         private Thread RecievingThr;
+        private Object _stoping_locker = new Object();
+        private CancellationTokenSource _recivingCancelTokenSource = new CancellationTokenSource();
+        private CancellationToken _recieving_cancel;
+        private AutoResetEvent _stopping_finished = new AutoResetEvent(false);
+
 
         private void RecievingProc()
         {
@@ -50,6 +74,9 @@ namespace Tanki
             {
                 while (Alive)
                 {
+                    if (_recieving_cancel.IsCancellationRequested)
+                        _recieving_cancel.ThrowIfCancellationRequested();
+
                     IPEndPoint remoteIp = null;
 
                     Console.WriteLine("recieving.. ");
@@ -68,10 +95,11 @@ namespace Tanki
             catch (Exception ex)
             {
                 //допишу позже
+                Alive = false;
             }
             finally
             {
-                NetClient.Close();
+                //NetClient.Close();                
             }
 
         }
@@ -79,6 +107,14 @@ namespace Tanki
         public void OnRegistered_EventHandler(object Sender, RegRecieverData evntData)
         {
             Owner = evntData.owner;
+        }
+
+        public void Dispose()
+        {
+            Stop();
+            _stopping_finished.WaitOne();
+            _recivingCancelTokenSource.Dispose();
+            NetClient.Close();            
         }
 
         //private int localport;

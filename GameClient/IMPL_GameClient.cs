@@ -48,7 +48,8 @@ namespace Tanki
 
         public void AddAddressee(string Id, IAddresssee addresssee)
         {
-            this.adresee_list.Add(Id, addresssee);
+            //this.adresee_list.Add(Id, addresssee);
+            this.adresee_list[Id] = addresssee;
         }
 
         public IAddresssee this[string id]
@@ -93,27 +94,51 @@ namespace Tanki
             }
         }
 
+        private Timer _timer;
+        private CancellationTokenSource _sendingTimerCancelTokenSource = new CancellationTokenSource();
+        private CancellationToken _sendingTimerCancelToken;
+        private AutoResetEvent _timer_dispose = new AutoResetEvent(false);
 
+        // Guid IGameClient.Passport { get; set ; }
 
-       // Guid IGameClient.Passport { get; set ; }
-
-        public void RUN(IPEndPoint ServerEndPoint)                  // запускает базовый NetProcessorAbs.RUN (очередь\reciver), коннектится к cерверу
+        public void RUN()   // запускает базовый NetProcessorAbs.RUN (очередь\reciver)
         {
             base.RUN();
         }
-
-        
-
-        public void RUN_GAME()                                     // запускает таймер переодической отправки клиентского состоянения игры на сервер
+        public void STOP()  // останавливает базовый NetProcessorAbs.STOP (очередь\reciver)
         {
-            this.tm = new TimerCallback(ProceedQueue);
-            Timer timer = new Timer(tm, (Engine as IClientEngine).Entity, 0, this.MiliSeconds);
-            
+            base.STOP();
         }
+
+
+        #region moved_to_client_engine
+        //public void RUN_GAME()    // запускает таймер переодической отправки клиентского состоянения игры на сервер
+        //{
+        //    _sendingTimerCancelToken = _sendingTimerCancelTokenSource.Token;
+        //    this.tm = new TimerCallback(ProceedQueue);
+        //    _timer = new Timer(tm, (Engine as IClientEngine).Entity, 0, this.MiliSeconds);
+
+        //}
+
+        //public void STOP_GAME()   // останавливает таймер переодической отправки клиентского состоянения игры на сервер
+        //{
+        //    //Reciever.Alive = false;
+        //    _sendingTimerCancelTokenSource.Cancel();
+        //    _timer.Dispose(_timer_dispose);
+        //    _timer_dispose.WaitOne();
+        //}
+        #endregion moved_to_client_engine
 
         private void ProceedQueue(object state)          //должен будет быть приватный метод  'void ProceedQueue(Object state)' который будет передаваться time-ру как callback 
         {                                                           // этот метод должен с периодиностью таймера отправлять клиентское состояние игры на сервер    
-			var tosend = state as IEntity;
+
+            if (_sendingTimerCancelToken.IsCancellationRequested)
+            {
+                _timer.Change(Timeout.Infinite, Timeout.Infinite);
+                return;
+            }
+
+            var tosend = state as IEntity;
             var packagee = new Package()
             {
                 Sender_Passport = this.Passport,
@@ -137,11 +162,6 @@ namespace Tanki
 			}
 			catch { return false; };
         }
-
-        public void END_GAME()
-        {
-            Reciever.Alive = false;
-		}
 
         public void OnClientGameStateChangedHandler(object Sender, GameStateChangeData evntData)
         {

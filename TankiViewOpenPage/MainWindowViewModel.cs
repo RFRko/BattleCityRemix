@@ -55,7 +55,7 @@ namespace TankiViewOpenPage
 
         private void goCmdEcexute(object p)
         {
-            startClient.RUN(new IPEndPoint(IpAddress, Port));
+            //startClient.RUN(new IPEndPoint(IpAddress, Port));
 
             MainPage form2 = new MainPage();
 

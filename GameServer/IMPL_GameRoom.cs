@@ -24,6 +24,7 @@ namespace Tanki
 
 
         private List<IGamer> _gamers = new List<IGamer>();
+        private Object _locker = new Object();    
 
         public RoomType Room_Type { get; protected set; }
         public Guid Passport { get; protected set; }
@@ -37,14 +38,44 @@ namespace Tanki
 		public GameStatus Status { get; set; }
 
 
+
         public virtual void AddGamer(IGamer newGamer)
         {
-            if (GameSetings != null && _gamers.Count == GameSetings.MaxPlayersCount) throw new RoomIsFullException();
+            lock(_locker)
+            {
+                if (GameSetings != null && _gamers.Count == GameSetings.MaxPlayersCount) throw new RoomIsFullException();
 
-            _gamers.Add(newGamer);
-            OnNewAddresssee?.Invoke(this, new NewAddressseeData() { newAddresssee = newGamer });
-            if (GameSetings != null && _gamers.Count == GameSetings.MaxPlayersCount)
-                OnAddressseeHolderFull?.Invoke(this, new AddressseeHolderFullData() { isFull = true });
+                _gamers.Add(newGamer);
+                OnNewAddresssee?.Invoke(this, new NewAddressseeData() { newAddresssee = newGamer });
+                if (GameSetings != null && _gamers.Count == GameSetings.MaxPlayersCount)
+                    OnAddressseeHolderFull?.Invoke(this, new AddressseeHolderFullData() { isFull = true, lastAddedAdresssee = newGamer });
+
+            }
+        }
+
+        public void RemoveGamer(IGamer delGamer)
+        {
+            lock(_locker)
+            {
+                _gamers.Remove(delGamer);
+                OnRemoveAddresssee?.Invoke(this, new RemoveAddressseeData() { removeddresssee = delGamer });
+                //if (GameSetings != null && _gamers.Count == GameSetings.MaxPlayersCount)
+                //    OnAddressseeHolderFull?.Invoke(this, new AddressseeHolderFullData() { isFull = true });
+            }
+        }
+
+        public void RemoveGamer(Guid delGamerId)
+        {
+            IGamer gmr = null;
+            lock (_locker)
+            {
+                var found = from g in _gamers where g.Passport == delGamerId select g;
+                if (found == null) throw new Exception("Gamer .." + delGamerId.ToString() + " not found in room " + Passport.ToString());
+                if (found.Count() > 1) throw new Exception("Not Unique gamer passport " + delGamerId.ToString() + " in room " + Passport.ToString());
+                gmr = found.First();
+            }
+
+            RemoveGamer(gmr);
             
         }
 
@@ -72,6 +103,7 @@ namespace Tanki
         public event EventHandler<NewAddressseeData> OnNewAddresssee;
         public event EventHandler<NetProcStartedEvntData> OnRoomNetProcessorStarted;
         public event EventHandler<AddressseeHolderFullData> OnAddressseeHolderFull;
+        public event EventHandler<RemoveAddressseeData> OnRemoveAddresssee;
     }
 
 
@@ -154,6 +186,12 @@ namespace Tanki
             return mO.GetRoomByGuid(roomGuid);
 
         }
+
+        public void RemoveGamerFromRoom(IGamer gamer, Guid TargetRoomId)
+        {
+            IManagerRoomOwner mO = Owner as IManagerRoomOwner;
+            mO.RemoveGamerFromRoom(gamer, TargetRoomId);
+        }
     }
 
     public class GameRoom : RoomAbs, IGameRoom
@@ -203,6 +241,8 @@ namespace Tanki
             if (evntData is NotifyStartGameData)
                 OnNotifyStartGame?.BeginInvoke(this, evntData as NotifyStartGameData, null, null);
 
+            if (evntData is NotifyRemovePlayerData)
+                OnNotifyRemovePlayer?.BeginInvoke(this, evntData as NotifyRemovePlayerData, null, null);
         }
 
 
@@ -224,7 +264,7 @@ namespace Tanki
         public event EventHandler<GameStatusChangedData> OnNewGameStatus;
         public event EventHandler<NotifyJoinedPlayerData> OnNotifyJoinedPlayer;
         public event EventHandler<NotifyStartGameData> OnNotifyStartGame;
-
+        public event EventHandler<NotifyRemovePlayerData> OnNotifyRemovePlayer;
     }
 
 
