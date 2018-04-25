@@ -173,5 +173,12 @@ namespace Tanki
                 throw ex;
             }
         }
+
+        public void RemoveRoom(IRoom room2remove)
+        {
+            _rooms.Remove(room2remove);
+            room2remove.STOP();
+            room2remove.Dispose();
+        }
     }
 }

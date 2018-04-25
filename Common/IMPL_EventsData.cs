@@ -98,4 +98,11 @@ namespace Tanki
     {
         public Guid RemovedPlayerPassport { get; set; }
     }
+
+    public class NotifyMustRemoveRoom : EventArgs
+    {
+        public IRoom Room2remove { get; set; }
+    }
+    
+
 }

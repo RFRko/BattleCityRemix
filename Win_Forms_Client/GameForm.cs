@@ -465,8 +465,9 @@ namespace Tanki
 
 		private void GameForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			timer.Stop();	
-			      ClientEngine.StopGame();
+			timer.Stop();
+
+            ClientEngine.StopGame();
             ClientEngine.OnMapChanged -= OnMapChangeHandler;
             ClientEngine.OnTankDeath -= OnTankDeath;
             ClientEngine.OnError -= ErrorHandler;

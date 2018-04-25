@@ -168,7 +168,9 @@ namespace Tanki
         public void StopGame()
 		{
 			_CancelationSource.Cancel();
-			_timer.Dispose();
+            if (_timer != null)
+			    _timer.Dispose();
+
             st_g = false;
             First_Map = true;
             Map = null;

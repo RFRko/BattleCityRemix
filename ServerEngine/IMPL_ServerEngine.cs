@@ -167,8 +167,9 @@ namespace Tanki
         /// <param name="list">Список пакетов переданый движку на обработку</param>
         /// 
         private Object locker = new Object();
+        private Boolean _shut_down_room_enforced = false;
 
-		private void MessagesHandler(IEnumerable<IPackage> list)
+        private void MessagesHandler(IEnumerable<IPackage> list)
 		{
 			//object locker = new object(); - локальный локкер бессмыссленный, не выполняет блокировку,  вынес его в область класса
 
@@ -179,24 +180,33 @@ namespace Tanki
 
             lock(locker)
             {
+                // обработка сообщений об отключении от комнаты
+                var logoffmsgs = from m in list where m.MesseggeType == MesseggeType.RequestLogOff select m;
+                if (logoffmsgs != null && logoffmsgs.Count() > 0)
+                {
+                    foreach (var m in logoffmsgs)
+                    {
+                        (Owner as IRoom).RemoveGamer((Guid)m.Sender_Passport); //после этого вызовется событие комнаты OnRemoveAddresssee
+                        try
+                        {  // Но удалим танк прямо тут
+                            var tank2remove = tanks.Single((t) => { return t.Tank_ID == m.Sender_Passport; });
+                            tanks.Remove(tank2remove);
+                        }
+                        catch (Exception ex) { };
+                    }
+                }
+
+                if ((Owner as IRoom).Gamers.Count() ==0)
+                {
+                    (Owner as IGameRoom).NotifyGameRoomForEvent(new NotifyMustRemoveRoom() { Room2remove = Owner as IRoom });
+                    _shut_down_room_enforced = true;
+                }
+
+                if (_shut_down_room_enforced)
+                    return;
+
                 if (this.status == GameStatus.Start)
                 {
-                    // обработка сообщений об отключении от комнаты
-                    var logoffmsgs = from m in list where m.MesseggeType == MesseggeType.RequestLogOff select m;
-                    if (logoffmsgs != null && logoffmsgs.Count() > 0)
-                    {
-                        foreach (var m in logoffmsgs)
-                        {
-                            (Owner as IRoom).RemoveGamer((Guid)m.Sender_Passport); //после этого вызовется событие комнаты OnRemoveAddresssee
-                            try
-                            {  // Но удалим танк прямо тут
-                                var tank2remove = tanks.Single((t) => { return t.Tank_ID == m.Sender_Passport; });
-                                tanks.Remove(tank2remove);
-                            }
-                            catch (Exception ex) { };
-                        }
-                    }
-
                     // берем сообщения только типа Tank кроме убитых
                     list = from m in list
                             where (m.MesseggeType != MesseggeType.RequestLogOff &&
@@ -653,6 +663,9 @@ namespace Tanki
 		/// <param name="evntData">Данные о подключении</param>
 		public override void OnNewAddresssee_Handler(object Sender, NewAddressseeData evntData)
 		{
+            if (_shut_down_room_enforced)
+                return;
+
             _ready_proc_msg.Reset();
             _ready_proc_newGamer.WaitOne();
 
@@ -686,9 +699,11 @@ namespace Tanki
         /// <param name="statusData"> Данные о новом игровом статуса</param>
         public void OnNewGameStatus_Handler(object Sender, GameStatusChangedData statusData)
 		{
+            if (_shut_down_room_enforced)
+                return;
 
-			//this.status = statusData.newStatus;
-			if (statusData.newStatus == GameStatus.Start)
+            //this.status = statusData.newStatus;
+            if (statusData.newStatus == GameStatus.Start)
 				this.SendStartGame();
 		}
 
@@ -704,6 +719,9 @@ namespace Tanki
 
 		public override void OnAddressseeHolderFull_Handler(object Sender, AddressseeHolderFullData evntData)
 		{
+            if (_shut_down_room_enforced)
+                return;
+
             //общий сигнал о начале игры при заполнении
             if (status == GameStatus.WaitForStart)
             {

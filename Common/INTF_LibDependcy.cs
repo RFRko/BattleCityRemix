@@ -90,6 +90,7 @@ namespace Tanki
         IPEndPoint MooveGamerToRoom(IGamer gamer, Guid TargetRoomId);
         void RemoveGamerFromRoom(IGamer gamer, Guid TargetRoomId);
         IRoom AddRoom(IGameSetings gameSettings, Guid Creator_Passport);
+        void RemoveRoom(IRoom room2remove);
         IRoom GetRoomByGuid(Guid roomGuid);
         IGamer GetGamerByGuid(Guid gamerGuid);
     }
@@ -105,6 +106,7 @@ namespace Tanki
         IPEndPoint MooveGamerToRoom(IGamer gamer, Guid TargetRoomId);
         void RemoveGamerFromRoom(IGamer gamer, Guid TargetRoomId);
         IRoom AddRoom(IGameSetings gameSettings, Guid Creator_Passport);
+        void RemoveRoom(IRoom room2remove);
         IRoom GetRoomByGuid(Guid roomGuid);
     }
 
@@ -118,6 +120,7 @@ namespace Tanki
         event EventHandler<NotifyJoinedPlayerData> OnNotifyJoinedPlayer;
         event EventHandler<NotifyStartGameData> OnNotifyStartGame;
         event EventHandler<NotifyRemovePlayerData> OnNotifyRemovePlayer;
+        event EventHandler<NotifyMustRemoveRoom> OnNotifyMustRemoveRoom;
 
     }
 

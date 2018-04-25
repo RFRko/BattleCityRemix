@@ -249,6 +249,8 @@ namespace Tanki
             IRoom newGameRoom = ManagerRoom.AddRoom(newGameSettings, client_passport);
             newGameRoom.CreatorPassport = gamer.Passport;
 
+            (newGameRoom as IGameRoom).OnNotifyMustRemoveRoom += OnNotifyMustRemoveRoom_EventHandler;
+
             newGameRoom.RUN();
 
             // добавить в нее игрока
@@ -298,8 +300,17 @@ namespace Tanki
             (Owner as IRoom).RemoveGamer(playerId);
 		}
 
+        private void RemoveRoom(IRoom room)
+        {
+            ManagerRoom.RemoveRoom(room);
+        }
 
-		public override void OnNetProcStarted_EventHandler(object Sender, NetProcStartedEvntData evntData)
+        public void OnNotifyMustRemoveRoom_EventHandler(object Senter, NotifyMustRemoveRoom evntData)
+        {            
+            RemoveRoom(evntData.Room2remove);
+        }
+
+        public override void OnNetProcStarted_EventHandler(object Sender, NetProcStartedEvntData evntData)
         {
             //nothing to do required yet
         }

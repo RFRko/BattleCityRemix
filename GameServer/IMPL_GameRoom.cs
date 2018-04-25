@@ -192,6 +192,12 @@ namespace Tanki
             IManagerRoomOwner mO = Owner as IManagerRoomOwner;
             mO.RemoveGamerFromRoom(gamer, TargetRoomId);
         }
+
+        public void RemoveRoom(IRoom room2remove)
+        {
+            IManagerRoomOwner mO = Owner as IManagerRoomOwner;
+            mO.RemoveRoom(room2remove);
+        }
     }
 
     public class GameRoom : RoomAbs, IGameRoom
@@ -243,6 +249,10 @@ namespace Tanki
 
             if (evntData is NotifyRemovePlayerData)
                 OnNotifyRemovePlayer?.BeginInvoke(this, evntData as NotifyRemovePlayerData, null, null);
+
+            if (evntData is NotifyMustRemoveRoom)
+                OnNotifyMustRemoveRoom?.BeginInvoke(this, evntData as NotifyMustRemoveRoom, null, null);
+
         }
 
 
@@ -265,6 +275,7 @@ namespace Tanki
         public event EventHandler<NotifyJoinedPlayerData> OnNotifyJoinedPlayer;
         public event EventHandler<NotifyStartGameData> OnNotifyStartGame;
         public event EventHandler<NotifyRemovePlayerData> OnNotifyRemovePlayer;
+        public event EventHandler<NotifyMustRemoveRoom> OnNotifyMustRemoveRoom;
     }
 
 
