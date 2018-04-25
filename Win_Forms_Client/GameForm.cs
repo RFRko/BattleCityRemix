@@ -81,8 +81,7 @@ namespace Tanki
 
 			this.ClientSize = size;
 			this.BackColor = Color.Black;
-
-			//KeysDown = new Queue<KeyEventArgs>();
+			
 			CanSoot = true;
 			locker = true;
 			timer = new Timer();
@@ -111,7 +110,7 @@ namespace Tanki
 		private Dictionary<Direction, Bitmap> Player;
 		private Dictionary<BlockType, Bitmap> Blocks;
 		private List<Bitmap> ExplImages;
-		//private Queue<KeyEventArgs> KeysDown;
+		private Keys lastKey;
 
 		private Action<IMap> onMapChanged;
 		private Action<ITank> DeathAnimation;
@@ -129,7 +128,7 @@ namespace Tanki
 		private object locker;
 		private Timer timer;
 		private bool CanSoot;
-    private Boolean st_g;
+		private Boolean st_g;
     
 		protected override void OnPaint(PaintEventArgs e)
 		{
@@ -147,8 +146,8 @@ namespace Tanki
 				else animationSpeed--;
 			}
 
-			Draw_Blocks(e);
 			Draw_Bullets(e);
+			Draw_Blocks(e);
 			Draw_Tanks(e);
 		}
 
@@ -390,7 +389,7 @@ namespace Tanki
 			{
 				case Keys.Left:
 					{
-						//KeysDown.Enqueue(e);
+						if (lastKey != e.KeyCode) lastKey = e.KeyCode;
 						newEntity.Direction = Direction.Left;
 						newEntity.Command = EntityAction.Move;
 						ClientEngine.Entity = newEntity;
@@ -398,7 +397,7 @@ namespace Tanki
 					}
 				case Keys.Right:
 					{
-						//KeysDown.Enqueue(e);
+						if (lastKey != e.KeyCode) lastKey = e.KeyCode;
 						newEntity.Direction = Direction.Right;
 						newEntity.Command = EntityAction.Move;
 						ClientEngine.Entity = newEntity;
@@ -406,7 +405,7 @@ namespace Tanki
 					}
 				case Keys.Up:
 					{
-						//KeysDown.Enqueue(e);
+						if (lastKey != e.KeyCode) lastKey = e.KeyCode;
 						newEntity.Direction = Direction.Up;
 						newEntity.Command = EntityAction.Move;
 						ClientEngine.Entity = newEntity;
@@ -414,7 +413,7 @@ namespace Tanki
 					}
 				case Keys.Down:
 					{
-						//KeysDown.Enqueue(e);
+						if (lastKey != e.KeyCode) lastKey = e.KeyCode;
 						newEntity.Direction = Direction.Down;
 						newEntity.Command = EntityAction.Move;
 						ClientEngine.Entity = newEntity;
@@ -447,26 +446,19 @@ namespace Tanki
 		{
 			if (ClientEngine.Entity == null) return;
 
-			//if (KeysDown.Count > 0)
-			//{
-			//	KeysDown.Dequeue();
-			//	if (KeysDown.Count > 0)
-			//	{
-			//		this.OnKeyDown(KeysDown.Dequeue());
-			//		return;
-			//	}
-			//};
+			if (lastKey != e.KeyCode && e.KeyCode != Keys.Space && e.KeyCode != Keys.Enter)
+			{
+				this.OnKeyDown(new KeyEventArgs(lastKey));
+				return;
+			}
 
-			var newEntity = ClientEngine.Entity;
-
-			newEntity.Command = EntityAction.None;
-			ClientEngine.Entity = newEntity;
+			ClientEngine.Action(EntityAction.None);
 		}
 
 		private void GameForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			timer.Stop();	
-			      ClientEngine.StopGame();
+			ClientEngine.StopGame();
             ClientEngine.OnMapChanged -= OnMapChangeHandler;
             ClientEngine.OnTankDeath -= OnTankDeath;
             ClientEngine.OnError -= ErrorHandler;
@@ -482,9 +474,6 @@ namespace Tanki
             ClientEngine = null;
             Map = null;
         }
-        //=======
-        //			//ClientEngine.StopGame();
-        //		}
-        //>>>>>>> master
+
 	}
 }

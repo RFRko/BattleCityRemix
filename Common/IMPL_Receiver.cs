@@ -79,13 +79,13 @@ namespace Tanki
 
                     IPEndPoint remoteIp = null;
 
-                    Console.WriteLine("recieving.. ");
+                    //Console.WriteLine("recieving.. ");
 
                     byte[] data = NetClient.Receive(ref remoteIp);
                     ISerializator obj = new BinSerializator();
                     IPackage p = obj.Deserialize(data);
 
-                    if (p != null) Console.WriteLine("recieved " + p.ToString());
+                    //if (p != null) Console.WriteLine("recieved " + p.ToString());
 
                     Owner.MessageQueue.Enqueue(p);      //!!!!!!!!!!!!!!!!!!!!!!!
                     //return p;

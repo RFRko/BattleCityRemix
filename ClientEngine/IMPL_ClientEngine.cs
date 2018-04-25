@@ -16,7 +16,6 @@ namespace Tanki
 		{
 			ProcessMessage += ProcessMessageHandler;
 			ProcessMessages = null;
-			//_Entity = new Tank();
 			First_Map = true;
 			_ifReadyToSendEntity = new ManualResetEvent(false);
 			_ifReadyToSetEntity = new ManualResetEvent(false);
@@ -34,8 +33,6 @@ namespace Tanki
 		private string _ErrorText = null;
 		private Size _MapSize;
 		private bool st_g = false;
-		//private int count = 0;
-		//Stopwatch stopWatch = new Stopwatch();
 
 		private Int32 timerSpeed = 40;
         private Timer _timer = null;
@@ -103,19 +100,22 @@ namespace Tanki
 
 		public void Action(EntityAction action)
 		{
-			_Entity.Command = action;
-
-
-			var room_IpEndpoint = client["Room"];
-			var my_passport = client.Passport;
-
-
-			Owner.Sender.SendMessage(new Package()
+			if (st_g)
 			{
-				Sender_Passport = my_passport,
-				Data = _Entity,
-				MesseggeType = MesseggeType.Entity
-			}, room_IpEndpoint);
+				_Entity.Command = action;
+
+
+				var room_IpEndpoint = client["Room"];
+				var my_passport = client.Passport;
+
+
+				Owner.Sender.SendMessage(new Package()
+				{
+					Sender_Passport = my_passport,
+					Data = _Entity,
+					MesseggeType = MesseggeType.Entity
+				}, room_IpEndpoint);
+			}
 		}
 		public void CreateGame(GameSetings gameSetings, string player_name)
 		{
@@ -246,7 +246,7 @@ namespace Tanki
 				MesseggeType = MesseggeType.Entity
 			}, room_IpEndpoint);
 
-		_ifReadyToSetEntity.Set();
+			_ifReadyToSetEntity.Set();
 		}
 		private void ProcessMessageHandler(IPackage package)
 		{
@@ -255,13 +255,6 @@ namespace Tanki
 			{
 				case MesseggeType.Map:
 					{
-
-						//if (st_g)  count++;
-						//if(stopWatch.Elapsed.Seconds == 10)
-						//{
-						//	//тут ставь точку и смотри count
-						//	stopWatch.Stop();
-						//}
 						Map = package.Data as IMap;
 						if(First_Map)
 						{
@@ -313,10 +306,6 @@ namespace Tanki
 				case MesseggeType.StartGame:
 					{
 						st_g = true;
-                        //=======
-                        //						//st_g = true;
-                        //>>>>>>> master
-						//stopWatch.Start();
 						_ifReadyToSendEntity.Set();
                         _CancelationSource = new CancellationTokenSource();
                         _timerCancelator = _CancelationSource.Token;
@@ -329,19 +318,9 @@ namespace Tanki
 					}
 				case MesseggeType.EndGame:
 					{
-
                         StopGame();
-                        //onGameOwer?.BeginInvoke(this, 
-                        //	new ErrorData() { errorText = "Победил: " + (string)package.Data } , null, null);
-
                         onEndGame?.BeginInvoke(this,
                             new ErrorData() { errorText = (package?.Data as ITank).Name }, null, null);
-
-                        //=======
-                        //						//StopGame();
-                        //						onEndGame?.BeginInvoke(this,
-                        //							new ErrorData() { errorText = (package?.Data as ITank).Name }, null, null);
-                        //>>>>>>> master
                         break;
 					}
 				case MesseggeType.Error:

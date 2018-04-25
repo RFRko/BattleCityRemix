@@ -131,9 +131,6 @@
     <None Include="Resources\wall.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\wall1.bmp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\wall3.bmp" />
   </ItemGroup>
   <ItemGroup>
@@ -194,9 +191,6 @@
     <None Include="Resources\brake wall.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\brake wall2.bmp" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\tree.bmp" />
   </ItemGroup>
   <ItemGroup>
@@ -231,6 +225,27 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\brake brick.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\brake wall2.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Bullet2.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Bullet2_down.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Bullet2_left.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Bullet2_right.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Bullet2_up.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\wall1.bmp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\brake wall3.bmp" />
