@@ -21,5 +21,6 @@ namespace Tanki
 		public Size MapSize { get; set; }
 		public int MaxPlayersCount { get; set; }
 		public GameType GameType { get; set; }
+		public List<IBlock> blocklist { get; set; }
 	}
 }

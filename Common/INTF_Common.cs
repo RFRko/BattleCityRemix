@@ -302,6 +302,7 @@ namespace Tanki
 		Size MapSize { get; set; }
 		int MaxPlayersCount { get; set; }
 		GameType GameType { get; set; }
+		List<IBlock> blocklist { get; set; }
 	}
 
 	public interface IConectionData

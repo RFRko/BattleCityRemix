@@ -42,6 +42,9 @@
 			this.MapHeight_nud = new System.Windows.Forms.NumericUpDown();
 			this.VictoryCondition_cb = new System.Windows.Forms.ComboBox();
 			this.label6 = new System.Windows.Forms.Label();
+			this.label7 = new System.Windows.Forms.Label();
+			this.EditMap_btn = new System.Windows.Forms.Button();
+			this.MapList_cb = new System.Windows.Forms.ComboBox();
 			((System.ComponentModel.ISupportInitialize)(this.GameSpeed_nud)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.ObjectSize_nud)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.MapWidth_nud)).BeginInit();
@@ -78,7 +81,7 @@
 			// 
 			// CreateRoom_btn
 			// 
-			this.CreateRoom_btn.Location = new System.Drawing.Point(94, 265);
+			this.CreateRoom_btn.Location = new System.Drawing.Point(91, 307);
 			this.CreateRoom_btn.Name = "CreateRoom_btn";
 			this.CreateRoom_btn.Size = new System.Drawing.Size(75, 23);
 			this.CreateRoom_btn.TabIndex = 4;
@@ -88,7 +91,7 @@
 			// 
 			// Cancel_btn
 			// 
-			this.Cancel_btn.Location = new System.Drawing.Point(188, 265);
+			this.Cancel_btn.Location = new System.Drawing.Point(188, 307);
 			this.Cancel_btn.Name = "Cancel_btn";
 			this.Cancel_btn.Size = new System.Drawing.Size(75, 23);
 			this.Cancel_btn.TabIndex = 5;
@@ -99,7 +102,7 @@
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(25, 146);
+			this.label4.Location = new System.Drawing.Point(25, 191);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(92, 26);
 			this.label4.TabIndex = 6;
@@ -108,7 +111,7 @@
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(25, 208);
+			this.label5.Location = new System.Drawing.Point(25, 253);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(85, 13);
 			this.label5.TabIndex = 7;
@@ -177,7 +180,7 @@
 			// 
 			// NamberOfPlayer_nud
 			// 
-			this.NamberOfPlayer_nud.Location = new System.Drawing.Point(143, 152);
+			this.NamberOfPlayer_nud.Location = new System.Drawing.Point(143, 197);
 			this.NamberOfPlayer_nud.Maximum = new decimal(new int[] {
             8,
             0,
@@ -222,7 +225,7 @@
 			// VictoryCondition_cb
 			// 
 			this.VictoryCondition_cb.FormattingEnabled = true;
-			this.VictoryCondition_cb.Location = new System.Drawing.Point(143, 205);
+			this.VictoryCondition_cb.Location = new System.Drawing.Point(143, 250);
 			this.VictoryCondition_cb.Name = "VictoryCondition_cb";
 			this.VictoryCondition_cb.Size = new System.Drawing.Size(120, 21);
 			this.VictoryCondition_cb.TabIndex = 14;
@@ -231,16 +234,48 @@
 			// 
 			this.label6.AutoSize = true;
 			this.label6.ForeColor = System.Drawing.Color.Red;
-			this.label6.Location = new System.Drawing.Point(25, 240);
+			this.label6.Location = new System.Drawing.Point(25, 239);
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(0, 13);
 			this.label6.TabIndex = 15;
+			// 
+			// label7
+			// 
+			this.label7.AutoSize = true;
+			this.label7.Location = new System.Drawing.Point(25, 156);
+			this.label7.Name = "label7";
+			this.label7.Size = new System.Drawing.Size(28, 13);
+			this.label7.TabIndex = 16;
+			this.label7.Text = "Map";
+			// 
+			// EditMap_btn
+			// 
+			this.EditMap_btn.Location = new System.Drawing.Point(213, 151);
+			this.EditMap_btn.Name = "EditMap_btn";
+			this.EditMap_btn.Size = new System.Drawing.Size(50, 23);
+			this.EditMap_btn.TabIndex = 18;
+			this.EditMap_btn.Text = "Edit";
+			this.EditMap_btn.UseVisualStyleBackColor = true;
+			this.EditMap_btn.Click += new System.EventHandler(this.EditMap_btn_Click);
+			// 
+			// MapList_cb
+			// 
+			this.MapList_cb.FormattingEnabled = true;
+			this.MapList_cb.Location = new System.Drawing.Point(91, 151);
+			this.MapList_cb.Name = "MapList_cb";
+			this.MapList_cb.Size = new System.Drawing.Size(116, 21);
+			this.MapList_cb.Sorted = true;
+			this.MapList_cb.TabIndex = 20;
+			this.MapList_cb.SelectedIndexChanged += new System.EventHandler(this.MapList_cb_SelectedIndexChanged);
 			// 
 			// GameOptionsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(284, 303);
+			this.ClientSize = new System.Drawing.Size(284, 342);
+			this.Controls.Add(this.MapList_cb);
+			this.Controls.Add(this.EditMap_btn);
+			this.Controls.Add(this.label7);
 			this.Controls.Add(this.label6);
 			this.Controls.Add(this.VictoryCondition_cb);
 			this.Controls.Add(this.MapHeight_nud);
@@ -287,5 +322,8 @@
 		private System.Windows.Forms.NumericUpDown MapHeight_nud;
 		private System.Windows.Forms.ComboBox VictoryCondition_cb;
 		private System.Windows.Forms.Label label6;
+		private System.Windows.Forms.Label label7;
+		private System.Windows.Forms.Button EditMap_btn;
+		private System.Windows.Forms.ComboBox MapList_cb;
 	}
 }

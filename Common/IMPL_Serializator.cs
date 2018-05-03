@@ -20,6 +20,17 @@ namespace Tanki
 			return obj;
 		}
 
+		public object MapDeserialize(byte[] bytes)
+		{
+			MemoryStream memStream = new MemoryStream();
+			BinaryFormatter binForm = new BinaryFormatter();
+			memStream.Write(bytes, 0, bytes.Length);
+			memStream.Seek(0, SeekOrigin.Begin);
+			var obj = binForm.Deserialize(memStream);
+
+			return obj;
+		}
+
 
 
 		/// <summary> Сериализатор </summary>
